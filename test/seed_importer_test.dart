@@ -1,6 +1,6 @@
 // ============================================================================
 // NeuroScript AI: Automated Unit Tests
-// File: app/test/seed_importer_test.dart
+// File: test/seed_importer_test.dart
 //
 // Description:
 //   Unit test suite verifying idempotent curriculum seed loading and transaction
@@ -8,6 +8,7 @@
 // ============================================================================
 
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neuro_script/data/database/database.dart';
@@ -48,17 +49,17 @@ void main() {
     final sampleLessonJson = jsonEncode({
       "schemaVersion": 1,
       "title": "Sample Seed Lesson",
-      "meta": {
-        "profile": "Dyslexia",
-        "source": "seed",
-        "promptVersion": "v1"
-      },
+      "meta": {"profile": "Dyslexia", "source": "seed", "promptVersion": "v1"},
       "rawNotes": "1: Line one\n2: Line two",
       "conceptMap": {
         "nodes": [
-          {"id": "n1", "label": "Node 1", "sourceLines": [1]}
+          {
+            "id": "n1",
+            "label": "Node 1",
+            "sourceLines": [1],
+          },
         ],
-        "edges": []
+        "edges": [],
       },
       "flashcards": [
         {
@@ -66,9 +67,9 @@ void main() {
           "question": "Question 1",
           "answer": "Answer 1",
           "sourceLines": [1],
-          "chunks": ["chunk 1"]
-        }
-      ]
+          "chunks": ["chunk 1"],
+        },
+      ],
     });
 
     test('SeedImporter imports lesson inside a transaction', () async {
@@ -90,6 +91,8 @@ void main() {
 
       final allCards = await db.select(db.flashcards).get();
       expect(allCards.length, equals(1));
+      expect(allCards.first.groundingScore, isNull);
+      expect(allCards.first.verified, isFalse);
 
       final allProgress = await db.select(db.reviewProgress).get();
       expect(allProgress.length, equals(1));
@@ -114,5 +117,35 @@ void main() {
       final allLessons = await db.select(db.lessons).get();
       expect(allLessons.length, equals(1));
     });
+
+    test(
+      'SeedImporter rolls back transaction when a seed file is malformed',
+      () async {
+        final fakeBundle = FakeAssetBundle({
+          'assets/seed/photosynthesis.json': sampleLessonJson,
+          'assets/seed/computer_architecture.json': 'NOT_VALID_JSON{{[',
+          'assets/seed/algorithms.json': sampleLessonJson,
+        });
+
+        final importer = SeedImporter(db);
+        expect(
+          () => importer.importSeedLessons(bundle: fakeBundle),
+          throwsA(isA<SeedImportException>()),
+        );
+
+        // Verify transaction rollback: nothing was persisted, not even the first lesson
+        final allLessons = await db.select(db.lessons).get();
+        expect(allLessons, isEmpty);
+
+        final allNotes = await db.select(db.sourceNotes).get();
+        expect(allNotes, isEmpty);
+
+        final allCards = await db.select(db.flashcards).get();
+        expect(allCards, isEmpty);
+
+        final allProgress = await db.select(db.reviewProgress).get();
+        expect(allProgress, isEmpty);
+      },
+    );
   });
 }

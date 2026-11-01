@@ -52,14 +52,14 @@ class AppTheme {
     const surface = AppPalettes.adhdSurface;
     const text = AppPalettes.adhdText;
 
-    final colorScheme = ColorScheme.light(
+    final colorScheme = const ColorScheme.light(
       primary: primary,
       secondary: secondary,
       surface: surface,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: text,
-      outline: const Color(0xFFD1D5DB),
+      outline: Color(0xFFD1D5DB),
     );
 
     return ThemeData(
@@ -90,7 +90,10 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 52), // Satisfies >= 48dp target
+          minimumSize: const Size(
+            double.infinity,
+            52,
+          ), // Satisfies >= 48dp target
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -110,14 +113,14 @@ class AppTheme {
     const surface = AppPalettes.dyslexiaSurface;
     const text = AppPalettes.dyslexiaText;
 
-    final colorScheme = ColorScheme.light(
+    final colorScheme = const ColorScheme.light(
       primary: primary,
       secondary: secondary,
       surface: surface,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: text,
-      outline: const Color(0xFFD5CEBA),
+      outline: Color(0xFFD5CEBA),
     );
 
     return ThemeData(
@@ -149,7 +152,10 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 52), // Satisfies >= 48dp target
+          minimumSize: const Size(
+            double.infinity,
+            52,
+          ), // Satisfies >= 48dp target
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -172,14 +178,14 @@ class AppTheme {
     const surface = AppPalettes.autismSurface;
     const text = AppPalettes.autismText;
 
-    final colorScheme = ColorScheme.light(
+    final colorScheme = const ColorScheme.light(
       primary: primary,
       secondary: secondary,
       surface: surface,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: text,
-      outline: const Color(0xFFCFD8DC),
+      outline: Color(0xFFCFD8DC),
     );
 
     return ThemeData(
@@ -210,7 +216,10 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 52), // Satisfies >= 48dp target
+          minimumSize: const Size(
+            double.infinity,
+            52,
+          ), // Satisfies >= 48dp target
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),

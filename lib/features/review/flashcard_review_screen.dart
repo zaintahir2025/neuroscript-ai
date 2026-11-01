@@ -71,6 +71,12 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
   }
 
   void _flipCard() {
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    if (disableAnimations) {
+      _flipController.value = _isFront ? 1.0 : 0.0;
+      setState(() => _isFront = !_isFront);
+      return;
+    }
     if (_isFront) {
       _flipController.forward();
     } else {
@@ -135,6 +141,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
                 title: current.card.question,
                 sourceLines: current.card.sourceLines,
                 rawNoteLines: current.rawNoteLines,
+                groundingScore: current.card.groundingScore,
               );
             },
           ),
@@ -148,126 +155,175 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Progress Bar & Step Counter
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Card ${_currentIndex + 1} of $total',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  // Progress Bar & Step Counter
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Card ${_currentIndex + 1} of $total',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondary.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Box ${current.progress.box} (Next: ${current.progress.intervalDays}d)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.secondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: colorScheme.outline.withValues(
+                        alpha: 0.2,
+                      ),
                       color: colorScheme.primary,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondary.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Box ${current.progress.box} (Next: ${current.progress.intervalDays}d)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.secondary,
+
+                  const SizedBox(height: 20),
+
+                  Expanded(
+                    child: Semantics(
+                      button: true,
+                      label: _isFront
+                          ? 'Flashcard front: ${current.card.question}. Double tap to flip to answer.'
+                          : 'Flashcard back: ${current.card.answer}. Double tap to flip to question.',
+                      hint: 'Flips the flashcard between question and answer',
+                      onTap: _flipCard,
+                      child: GestureDetector(
+                        onTap: _flipCard,
+                        child: Builder(
+                          builder: (context) {
+                            final disableAnimations =
+                                MediaQuery.disableAnimationsOf(context);
+                            if (disableAnimations) {
+                              return _isFront
+                                  ? _buildCardFace(
+                                      isFront: true,
+                                      title: 'QUESTION',
+                                      content: current.card.question,
+                                      theme: theme,
+                                      colorScheme: colorScheme,
+                                      chunks: const [],
+                                      sourceLines: current.card.sourceLines,
+                                      rawLines: current.rawNoteLines,
+                                      groundingScore:
+                                          current.card.groundingScore,
+                                    )
+                                  : _buildCardFace(
+                                      isFront: false,
+                                      title: 'ANSWER',
+                                      content: current.card.answer,
+                                      theme: theme,
+                                      colorScheme: colorScheme,
+                                      chunks: current.card.chunks,
+                                      sourceLines: current.card.sourceLines,
+                                      rawLines: current.rawNoteLines,
+                                      groundingScore:
+                                          current.card.groundingScore,
+                                    );
+                            }
+
+                            return AnimatedBuilder(
+                              animation: _flipAnimation,
+                              builder: (context, child) {
+                                final angle = _flipAnimation.value * pi;
+                                final isUnder = angle > pi / 2;
+
+                                return Transform(
+                                  transform: Matrix4.identity()
+                                    ..setEntry(3, 2, 0.001) // perspective
+                                    ..rotateY(angle),
+                                  alignment: Alignment.center,
+                                  child: isUnder
+                                      ? Transform(
+                                          transform: Matrix4.identity()
+                                            ..rotateY(pi),
+                                          alignment: Alignment.center,
+                                          child: _buildCardFace(
+                                            isFront: false,
+                                            title: 'ANSWER',
+                                            content: current.card.answer,
+                                            theme: theme,
+                                            colorScheme: colorScheme,
+                                            chunks: current.card.chunks,
+                                            sourceLines:
+                                                current.card.sourceLines,
+                                            rawLines: current.rawNoteLines,
+                                            groundingScore:
+                                                current.card.groundingScore,
+                                          ),
+                                        )
+                                      : _buildCardFace(
+                                          isFront: true,
+                                          title: 'QUESTION',
+                                          content: current.card.question,
+                                          theme: theme,
+                                          colorScheme: colorScheme,
+                                          chunks: const [],
+                                          sourceLines: current.card.sourceLines,
+                                          rawLines: current.rawNoteLines,
+                                          groundingScore:
+                                              current.card.groundingScore,
+                                        ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  backgroundColor: colorScheme.outline.withValues(alpha: 0.2),
-                  color: colorScheme.primary,
-                ),
-              ),
 
-              const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-              // Flippable Card Area
-              Expanded(
-                child: GestureDetector(
-                  onTap: _flipCard,
-                  child: AnimatedBuilder(
-                    animation: _flipAnimation,
-                    builder: (context, child) {
-                      final angle = _flipAnimation.value * pi;
-                      final isUnder = angle > pi / 2;
-
-                      return Transform(
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001) // perspective
-                          ..rotateY(angle),
-                        alignment: Alignment.center,
-                        child: isUnder
-                            ? Transform(
-                                transform: Matrix4.identity()..rotateY(pi),
-                                alignment: Alignment.center,
-                                child: _buildCardFace(
-                                  isFront: false,
-                                  title: 'ANSWER',
-                                  content: current.card.answer,
-                                  theme: theme,
-                                  colorScheme: colorScheme,
-                                  chunks: current.card.chunks,
-                                  sourceLines: current.card.sourceLines,
-                                  rawLines: current.rawNoteLines,
-                                ),
-                              )
-                            : _buildCardFace(
-                                isFront: true,
-                                title: 'QUESTION',
-                                content: current.card.question,
-                                theme: theme,
-                                colorScheme: colorScheme,
-                                chunks: const [],
-                                sourceLines: current.card.sourceLines,
-                                rawLines: current.rawNoteLines,
-                              ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Bottom Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: 'Not yet',
-                      icon: Icons.replay,
-                      isSecondary: true,
-                      onPressed: () => _handleAnswer(false),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: AppButton(
-                      label: 'Got it!',
-                      icon: Icons.check,
-                      onPressed: () => _handleAnswer(true),
-                    ),
+                  // Bottom Actions
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppButton(
+                          label: 'Not yet',
+                          icon: Icons.replay,
+                          isSecondary: true,
+                          onPressed: () => _handleAnswer(false),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: AppButton(
+                          label: 'Got it!',
+                          icon: Icons.check,
+                          onPressed: () => _handleAnswer(true),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ),
     );
   }
 
@@ -280,6 +336,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
     required List<String> chunks,
     required List<int> sourceLines,
     required List<String> rawLines,
+    double? groundingScore,
   }) {
     return Card(
       elevation: 4,
@@ -329,6 +386,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
                       title: content,
                       sourceLines: sourceLines,
                       rawNoteLines: rawLines,
+                      groundingScore: groundingScore,
                     );
                   },
                   icon: const Icon(Icons.search, size: 16),
@@ -364,11 +422,15 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
                             runSpacing: 6,
                             children: chunks.map((c) {
                               return Chip(
-                                label: Text(c, style: const TextStyle(fontSize: 12)),
-                                backgroundColor: colorScheme.secondary.withValues(
-                                  alpha: 0.1,
+                                label: Text(
+                                  c,
+                                  style: const TextStyle(fontSize: 12),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                backgroundColor: colorScheme.secondary
+                                    .withValues(alpha: 0.1),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
                               );
                             }).toList(),
                           ),
@@ -433,81 +495,81 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
                       color: colorScheme.primary,
                     ),
                   ),
-              const SizedBox(height: 24),
-              Text(
-                'Great Job!',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'You finished this study slice.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            '$_correctCount',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const Text('Got It'),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            '$_incorrectCount',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const Text('Review Again'),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            '$accuracy%',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const Text('Accuracy'),
-                        ],
-                      ),
-                    ],
+                  const SizedBox(height: 24),
+                  Text(
+                    'Great Job!',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You finished this study slice.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                '$_correctCount',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const Text('Got It'),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                '$_incorrectCount',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const Text('Review Again'),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                '$accuracy%',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const Text('Accuracy'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  AppButton(
+                    label: 'Back to Library',
+                    icon: Icons.check_circle_outline,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
-              const Spacer(),
-              AppButton(
-                label: 'Back to Library',
-                icon: Icons.check_circle_outline,
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 }
