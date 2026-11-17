@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/neuroscript-ai/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="NeuroScript AI: Privacy-Preserving Study Platform for Neurodivergent Learners (ADHD, Dyslexia, Autism)">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NeuroScript AI">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>NeuroScript AI - Privacy-Preserving Study Platform</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- In-Browser WASM OCR Engine (Tesseract.js) for Web (Zero external network calls, runs in WebWorker) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    window.neuroscriptOcr = async function(base64Data, mimeType) {
+      try {
+        if (typeof Tesseract === 'undefined') {
+          console.warn("[NeuroScript Web OCR] Tesseract library loading...");
+          return "[]";
+        }
+        var dataUrl = "data:" + (mimeType || "image/jpeg") + ";base64," + base64Data;
+        var result = await Tesseract.recognize(dataUrl, 'eng');
+        var lines = [];
+        if (result && result.data && result.data.lines) {
+          for (var i = 0; i < result.data.lines.length; i++) {
+            var l = result.data.lines[i];
+            var txt = (l.text || "").trim();
+            if (txt.length > 0) {
+              lines.push({
+                "text": txt,
+                "confidence": (l.confidence || 90) / 100.0
+              });
+            }
+          }
+        }
+        return JSON.stringify(lines);
+      } catch (err) {
+        console.error("[NeuroScript Web OCR Error]", err);
+        return "[]";
+      }
+    };
+  </script>
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
