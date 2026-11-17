@@ -9,10 +9,13 @@
 //   concept map launcher, and soft-delete/recovery workflows.
 // ============================================================================
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/document_hash.dart';
 import '../../core/widgets/card_tile.dart';
@@ -31,7 +34,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedFilter = 'All'; // 'All', 'Due Today', 'Mastered'
+  String _selectedFilter = 'All'; // 'All', 'Due Today', 'Caught up'
   String _selectedSort =
       'Default'; // 'Default', 'Title', 'Due Count', 'Card Count'
 
@@ -85,18 +88,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             loading: () => const SizedBox.shrink(),
             error: (_, _) => const SizedBox.shrink(),
           ),
-          if (config.demoMode)
-            IconButton(
-              icon: const Icon(Icons.note_add_outlined),
-              tooltip: 'Developer: Paste Test Note (Debug/Demo)',
-              onPressed: () => _showPasteTestNoteDialog(context, ref),
-            ),
-          IconButton(
-            icon: const Icon(Icons.account_tree_outlined),
-            tooltip: 'Concept Maps',
-            onPressed: () => _showConceptMapPicker(context, ref),
-          ),
-
           IconButton(
             icon: Badge(
               isLabelVisible: (deletedAsync.asData?.value.length ?? 0) > 0,
@@ -110,15 +101,56 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               deletedAsync.asData?.value ?? [],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart_outlined),
-            tooltip: 'Progress & Stats',
-            onPressed: () => context.push('/progress'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-            onPressed: () => context.push('/settings'),
+          PopupMenuButton<String>(
+            tooltip: 'More options',
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (value) {
+              switch (value) {
+                case 'maps':
+                  _showConceptMapPicker(context, ref);
+                case 'progress':
+                  context.push('/progress');
+                case 'settings':
+                  context.push('/settings');
+                case 'demo_import':
+                  _showPasteTestNoteDialog(context, ref);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'maps',
+                child: ListTile(
+                  leading: Icon(Icons.account_tree_outlined),
+                  title: Text('Concept maps'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'progress',
+                child: ListTile(
+                  leading: Icon(Icons.bar_chart_outlined),
+                  title: Text('Progress'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: ListTile(
+                  leading: Icon(Icons.settings_outlined),
+                  title: Text('Settings'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (config.demoMode)
+                const PopupMenuItem(
+                  value: 'demo_import',
+                  child: ListTile(
+                    leading: Icon(Icons.note_add_outlined),
+                    title: Text('Paste test notes'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -143,45 +175,73 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       color: colorScheme.primary,
                       child: Padding(
                         padding: const EdgeInsets.all(20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${metrics.dueToday} Cards Due Today',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    '${metrics.masteredCards} of ${metrics.totalCards} cards mastered with spaced repetition',
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.85,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        metrics.dueToday == 0
+                                            ? 'You’re all caught up'
+                                            : '${metrics.dueToday} cards ready to review',
+                                        style: theme.textTheme.titleLarge
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                       ),
-                                      fontSize: 13,
-                                    ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '${metrics.masteredCards} of ${metrics.totalCards} cards mastered',
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.9,
+                                              ),
+                                            ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 12),
+                                Icon(
+                                  metrics.dueToday == 0
+                                      ? Icons.check_circle_outline
+                                      : Icons.alarm_on,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: metrics.dueToday > 0
+                                  ? () => _showDueLessonPicker(
+                                      context,
+                                      lessonsAsync.asData?.value ?? const [],
+                                    )
+                                  : () => _showOcrSourceSheet(context),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(48, 48),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.alarm_on,
-                                color: Colors.white,
-                                size: 28,
+                              icon: Icon(
+                                metrics.dueToday > 0
+                                    ? Icons.play_arrow
+                                    : Icons.add_a_photo_outlined,
+                              ),
+                              label: Text(
+                                metrics.dueToday > 0
+                                    ? 'Choose a set to study'
+                                    : 'Add notes to study',
                               ),
                             ),
                           ],
@@ -201,11 +261,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         child: TextField(
                           controller: _searchController,
                           decoration: InputDecoration(
-                            hintText: 'Search lessons or topics...',
+                            labelText: 'Search study sets',
+                            hintText: 'Search by lesson title',
                             prefixIcon: const Icon(Icons.search, size: 20),
                             suffixIcon: _searchQuery.isNotEmpty
                                 ? IconButton(
                                     icon: const Icon(Icons.clear, size: 18),
+                                    tooltip: 'Clear search',
                                     onPressed: () {
                                       _searchController.clear();
                                       setState(() => _searchQuery = '');
@@ -228,7 +290,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       ),
                       const SizedBox(width: 10),
                       PopupMenuButton<String>(
-                        tooltip: 'Sort Lessons',
+                        tooltip: 'Sort lessons ($_selectedSort)',
                         icon: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -286,10 +348,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                             setState(() => _selectedFilter = 'Due Today'),
                       ),
                       FilterChip(
-                        label: const Text('Mastered'),
-                        selected: _selectedFilter == 'Mastered',
+                        label: const Text('Caught up'),
+                        selected: _selectedFilter == 'Caught up',
                         onSelected: (_) =>
-                            setState(() => _selectedFilter = 'Mastered'),
+                            setState(() => _selectedFilter = 'Caught up'),
                       ),
                     ],
                   ),
@@ -306,6 +368,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 48),
                           child: Center(
                             child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   Icons.auto_stories_outlined,
@@ -319,7 +382,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Sample study lessons load automatically on startup.',
+                                  'Add a set of notes to create your first study set.',
+                                  textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall,
                                 ),
                               ],
@@ -339,7 +403,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         if (_selectedFilter == 'Due Today' && l.dueCount == 0) {
                           return false;
                         }
-                        if (_selectedFilter == 'Mastered' && l.dueCount > 0) {
+                        if (_selectedFilter == 'Caught up' && l.dueCount > 0) {
                           return false;
                         }
                         return true;
@@ -371,8 +435,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'No lessons match "$_searchQuery"',
+                                  _searchQuery.isNotEmpty
+                                      ? 'No lessons match "$_searchQuery"'
+                                      : _selectedFilter == 'Due Today'
+                                      ? 'No cards are due today.'
+                                      : 'You’re caught up in every set.',
                                   style: theme.textTheme.titleMedium,
+                                  textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 8),
                                 TextButton(
@@ -419,7 +488,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                   margin: EdgeInsets.zero,
                                   title: l.title,
                                   subtitle:
-                                      '${l.cardCount} cards • Concept Map • ${l.dueCount} due',
+                                      '${l.cardCount} cards • ${l.dueCount} due today',
                                   leading: Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
@@ -453,7 +522,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                               return CardTile(
                                 title: l.title,
                                 subtitle:
-                                    '${l.cardCount} cards • Concept Map • ${l.dueCount} due',
+                                    '${l.cardCount} cards • ${l.dueCount} due today',
                                 leading: Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
@@ -561,7 +630,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       floatingActionButton: config.enableCapture
           ? FloatingActionButton.extended(
               onPressed: () {
-                // Arrives in M3
+                _showOcrSourceSheet(context);
               },
               icon: const Icon(Icons.camera_alt),
               label: const Text('Scan Note'),
@@ -894,6 +963,142 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     }
   }
 
+  void _showOcrSourceSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final colorScheme = theme.colorScheme;
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Text(
+                  'Add Notes for OCR',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Choose how you want to add your handwritten notes:',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: colorScheme.primary,
+                      size: 24,
+                    ),
+                  ),
+                  title: const Text(
+                    'Take Photos (Camera)',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text('Capture notes directly with your camera'),
+                  trailing: const Icon(Icons.chevron_right),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    context.push('/capture');
+                  },
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.photo_library,
+                      color: colorScheme.secondary,
+                      size: 24,
+                    ),
+                  ),
+                  title: const Text(
+                    'Choose from Gallery',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text('Pick note photos from your device gallery'),
+                  trailing: const Icon(Icons.chevron_right),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+                  ),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    try {
+                      final picker = ImagePicker();
+                      List<XFile> picked = [];
+                      try {
+                        picked = await picker.pickMultiImage(limit: 5);
+                      } on Object catch (_) {
+                        final single = await picker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (single != null) picked = [single];
+                      }
+
+                      if (picked.isEmpty) return;
+
+                      final bytesList = <Uint8List>[];
+                      for (final file in picked.take(5)) {
+                        final b = await file.readAsBytes();
+                        bytesList.add(b);
+                      }
+
+                      if (context.mounted && bytesList.isNotEmpty) {
+                        unawaited(context.push('/capture', extra: bytesList));
+                      }
+                    } on Object catch (e) {
+                      debugPrint('Direct gallery picker error: $e');
+                      if (context.mounted) {
+                        unawaited(context.push('/capture'));
+                      }
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showRecentlyDeletedSheet(
     BuildContext context,
     WidgetRef ref,
@@ -1199,6 +1404,61 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showDueLessonPicker(BuildContext context, List<LessonSummary> lessons) {
+    final dueLessons = lessons.where((lesson) => lesson.dueCount > 0).toList();
+    if (dueLessons.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('There are no cards due right now.')),
+      );
+      return;
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.72,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            children: [
+              Text(
+                'Choose a study set',
+                style: Theme.of(sheetContext).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Pick one set to review now. You can stop after this short session.',
+                style: Theme.of(sheetContext).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              ...dueLessons.map(
+                (lesson) => Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.menu_book_outlined),
+                    title: Text(lesson.title),
+                    subtitle: Text(
+                      '${lesson.dueCount} ${lesson.dueCount == 1 ? 'card' : 'cards'} due',
+                    ),
+                    trailing: const Icon(Icons.arrow_forward),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      context.push('/review/${lesson.lessonId}');
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

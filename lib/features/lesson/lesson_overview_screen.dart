@@ -156,6 +156,12 @@ class LessonOverviewScreen extends ConsumerWidget {
                                 'Seed lesson (author-written)',
                                 colorScheme,
                               ),
+                            if (lesson.meta.source == 'mock')
+                              _infoBadge(
+                                Icons.info_outline,
+                                'Demo content · not verified',
+                                colorScheme,
+                              ),
                             _infoBadge(
                               Icons.style_outlined,
                               '${lesson.flashcards.length} Flashcards',

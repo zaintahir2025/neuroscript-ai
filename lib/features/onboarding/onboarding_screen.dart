@@ -98,8 +98,8 @@ class OnboardingScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         _featureRow(
                           icon: Icons.lock_outline,
-                          title: 'Encrypted & Offline First',
-                          desc: 'Your study material never leaves your device unencrypted.',
+                          title: 'Local and Offline First',
+                          desc: 'Study sets are stored on this device by default. Remote generation may send confirmed note lines to a configured service.',
                           colorScheme: colorScheme,
                           theme: theme,
                         ),

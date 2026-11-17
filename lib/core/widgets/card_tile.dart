@@ -65,10 +65,16 @@ class CardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final accessibilityLabel = [
+      badgeText,
+      title,
+      subtitle,
+    ].whereType<String>().where((part) => part.isNotEmpty).join('. ');
 
     return Semantics(
       button: onTap != null,
-      label: title,
+      label: accessibilityLabel,
+      hint: onTap == null ? null : 'Opens this study set',
       child: Card(
         margin:
             margin ?? const EdgeInsets.symmetric(vertical: 6, horizontal: 0),

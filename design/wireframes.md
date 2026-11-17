@@ -1,24 +1,27 @@
 # Screen Wireframes and Interaction Architecture
 
-This document formalizes the low-fidelity and high-fidelity screen wireframes, visual hierarchies, and interaction flows designed for NeuroScript AI across mobile and tablet viewports.
+This document records the screen hierarchy and interaction flows used by NeuroScript AI across mobile, tablet, desktop, and web layouts.
 
 ---
 
 ## 1. Master Screen Inventory
 
-The application architecture encompasses 11 core screens, 3 modal sheets, and 4 system state views:
+The application currently includes 12 core views and supporting modal sheets:
 
 1. **Splash & Startup (`/splash`)**: Initial platform initialization, secure key extraction from `flutter_secure_storage`, and routing gate.
-2. **Onboarding (`/onboarding`)**: Welcome carousel introducing offline-first privacy, line-grounded verification, and neuroinclusive design.
-3. **Profile Selection (`/profile-select`)**: Profile selector choosing between ADHD, Dyslexia, and Autism design systems with real-time palette preview.
-4. **Library (`/library`)**: Central dashboard listing enrolled study decks, card review counts, mastery percentages, and active study sessions.
-5. **Lesson Overview (`/lesson/:id`)**: Comprehensive lesson summary, key takeaways, concept count, and primary actions ("Review Flashcards", "Concept Map").
-6. **Flashcard Review (`/review/:id`)**: 3D flip card review session adhering to profile-specific session caps (5 for ADHD, 10 default) with Leitner SRS grade actions.
-7. **Concept Map (`/concept-map/:id`)**: Multi-touch interactive semantic knowledge graph powered by `InteractiveViewer` with node line-provenance inspection.
-8. **Progress & Analytics (`/progress`)**: Longitudinal mastery metrics, Leitner box distribution (Boxes 1–5), study streaks, and deck completion meters.
-9. **Settings & Accessibility (`/settings`)**: Profile switching, font scale slider ($1.0\times$ to $2.0\times$), TTS voice selector, and secure database purge.
-10. **Architecture Blueprint (`/architecture`)**: System component topology, security layers, data flow diagrams, and active feature flag inspections.
-11. **OCR Document Review (`/ocr-review`)**: Numbered line-by-line inspection interface for captured handwritten notes (Milestone 3).
+2. **Onboarding (`/onboarding`)**: Short welcome introducing privacy, source references, concept maps, and accessibility profiles.
+3. **Profile Selection (`/profile_select`)**: Choose a profile and preview its palette and study adaptations.
+4. **Library (`/library`)**: Dashboard with due counts, searchable study sets, filters, and review entry points.
+5. **Lesson Overview (`/lesson/:id`)**: Lesson summary, source attribution, and primary study actions.
+6. **Edit Study Set (`/lesson/:id/edit`)**: Edit a set title and its flashcards.
+7. **Flashcard Review (`/review/:id`)**: Short active-recall session with a visible card count, source links, and Leitner response actions.
+8. **Concept Map (`/concept_map/:id`)**: Interactive graph with node line-provenance inspection.
+9. **Progress & Analytics (`/progress`)**: Mastery metrics, Leitner box distribution (Boxes 1–5), and per-set completion meters.
+10. **Settings & Accessibility (`/settings`)**: Profile switching, text size, reduced motion, high-contrast outlines, privacy information, and local data controls.
+11. **Capture Notes (`/capture`)**: Camera preview, multi-page capture, typed notes, and sample inputs (Milestone 3).
+12. **OCR Document Review (`/ocr-review`)**: Numbered line-by-line inspection interface for captured notes (Milestone 3).
+
+Supporting sheets include source evidence, recently deleted sets, concept map selection, and note details.
 
 ---
 

@@ -131,3 +131,9 @@ study-guides/
 *.study_guide.pdf
 *.study-guide.pdf
 
+
+# --------------------------------------------------
+# Build Artifacts & Android Packages
+# --------------------------------------------------
+*.apk
+/release_apk/

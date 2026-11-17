@@ -1,0 +1,6 @@
+@NeuroScriptProxy_HostAddress = http://localhost:5255
+
+GET {{NeuroScriptProxy_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

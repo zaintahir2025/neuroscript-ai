@@ -17,7 +17,7 @@ A specialized, accessible study application engineered for students with Attenti
 * **Engineering Team:**
   * **Zain Tahir** (Roll No. 23-CS-115) – Systems Architecture, Database Engineering, Frontend Implementation
   * **Ujala Sahar** (Roll No. 23-CS-135) – UI/UX Design System, Accessibility Auditing, User Acceptance Testing, Documentation
-* **Delivery Scope:** **Milestone 1** (Project Planning, Contracts & System Design) and **Milestone 2** (Encrypted Local Storage, Study Engines & Multi-Profile UI) Complete and Verified.
+* **Delivery Scope:** Milestones 1 and 2 are implemented. Milestone 3 capture, mobile OCR, line review, and proxy scaffolding are in place; the specified OpenCV processing and physical-device verification remain outstanding.
 
 ---
 
@@ -128,21 +128,21 @@ The following components are designed in the architecture blueprints but belong 
 
 ```
 +-------------------------------------------------------------------------+
-|                  PLANNED PIPELINE (Milestone 3+)                        |
+|               MILESTONE 3 PIPELINE AND M4 ROADMAP                       |
 |                                                                         |
-|  [ Camera Capture ]  --->  [ OpenCV C++ ]  --->  [ Google ML Kit OCR ]  |
-|   (Framing Guides)        (Bilateral Filter)      (Ordered Line Blocks) |
+|  [ Camera Capture ]  --->  [ Dart Preprocess ] --->  [ ML Kit OCR ]    |
+|   (Burst + Flash)          (OpenCV pending)         (Android / iOS)     |
 |                                                              |          |
 |                                                              v          |
-|  [ Local Encrypted DB ] <--- [ Closed-Book Gemini ] <--- [ Proxy Gate ] |
-|   (Grounding Verified)        (Delimited Synthesis)       (ASP.NET Core)|
+|  [ Local Encrypted DB ] <--- [ Demo Generator ] <--- [ Proxy Gateway ] |
+|   (Encrypted storage)         (Grounding in M4)       (ASP.NET Core)    |
 +-------------------------------------------------------------------------+
 ```
 
-1. **Stage 1: Optical Acquisition (Milestone 3):** Camera capture with multi-page burst (1–5 pages), edge-detection framing guides, and ambient light metering. Flagged off via `enableCapture = false`.
-2. **Stage 2: OpenCV Image Enhancement (Milestone 3):** Background-isolated C++ preprocessing pipeline executing CLAHE, bilateral filtering, and deskewing via Native Assets FFI.
-3. **Stage 3: OCR Transcription (Milestone 3):** Transcribing notes into ordered, 1-based numbered lines via Google ML Kit / Tesseract. Benchmark dataset established in `docs/benchmarks/ocr_benchmark.csv`.
-4. **Stage 4: ASP.NET Core Proxy Gateway (Milestone 3):** Rate-limited, authenticated API gateway proxying requests to Gemini models. Contract defined in `docs/contracts/proxy_api.yaml`.
+1. **Stage 1: Optical Acquisition (Milestone 3):** Camera preview and burst capture (1–5 pages) with flash control and a fixed framing guide. Automatic edge detection and ambient light sensing are not implemented.
+2. **Stage 2: Image Preprocessing (Milestone 3):** Current client uses a Dart isolate for resizing, grayscale conversion, contrast boost, Gaussian smoothing, global thresholding, and coarse skew estimation. The specified OpenCV CLAHE, bilateral filtering, adaptive threshold, and deskew correction remain incomplete.
+3. **Stage 3: OCR Transcription (Milestone 3):** Google ML Kit Latin recognition is wired for Android/iOS and produces ordered, 1-based numbered lines. Android still needs physical-device verification; iOS needs the Latin resource bundle and linker configuration described by the package setup. Desktop/web flows use typed notes or demos.
+4. **Stage 4: ASP.NET Core Proxy Gateway (Milestone 3):** Rate-limited gateway and client path are implemented. Configure `NEUROSCRIPT_PROXY_API_KEY` on the server and inject the matching `API_KEY` at build time. Current backend returns mock lessons; live Gemini integration is Milestone 4. Contract is in `docs/contracts/proxy-api.openapi.yaml`.
 5. **Stage 5: LLM Synthesis & MiniLM Grounding Verification (Milestone 4):** Closed-book prompt compilation with Google Gemini 2.5 Flash and all-MiniLM-L6-v2 semantic embeddings. Generator mode defaults to `GeneratorMode.seed`.
 6. **Stage 6: Text-to-Speech (TTS) & Simplification (Milestone 5):** Auditory read-aloud engine with word-level highlight tracking and literal simplification mode for Autism. Flagged off via `enableTts = false` and `enableSimplify = false`.
 

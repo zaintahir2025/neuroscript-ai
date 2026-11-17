@@ -22,6 +22,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:typed_data';
+
+import '../../data/models/ocr_models.dart';
+import '../../features/capture/capture_screen.dart';
+import '../../features/ocr_review/ocr_review_screen.dart';
 import '../../features/concept_map/concept_map_screen.dart';
 import '../../features/lesson/edit_lesson_screen.dart';
 import '../../features/lesson/lesson_overview_screen.dart';
@@ -379,6 +384,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+
+      // 10. Optical note capture screen (FR-01)
+      GoRoute(
+        path: '/capture',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is List<Uint8List>) {
+            return CaptureScreen(initialPages: extra);
+          }
+          return const CaptureScreen();
+        },
+      ),
+
+      // 11. Numbered line inspection and OCR editor (FR-04)
+      GoRoute(
+        path: '/ocr-review',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is List<Uint8List>) {
+            return OcrReviewScreen(capturedPages: extra);
+          } else if (extra is List<OcrLine>) {
+            return OcrReviewScreen(initialLines: extra);
+          }
+          return const OcrReviewScreen();
+        },
       ),
     ],
   );

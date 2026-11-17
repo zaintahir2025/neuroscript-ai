@@ -45,12 +45,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Zero Cloud Retention Policy',
+                'Local storage and network use',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 6),
               Text(
-                'Your handwritten lecture notes and study telemetry remain strictly on your local device. No raw notes are transmitted to unencrypted cloud databases.',
+                'By default, study sets stay on this device. If remote generation is enabled for this build, confirmed note lines are sent to its configured proxy. Check with your project administrator about that service’s retention policy.',
                 style: TextStyle(fontSize: 13),
               ),
               SizedBox(height: 12),
@@ -107,7 +107,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'NeuroScript AI v1.0.0 (Milestones 1 & 2)',
+                'NeuroScript AI · Milestone 3 preview',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 6),
@@ -132,7 +132,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               SizedBox(height: 4),
               Text(
-                '• Milestone 1: Planning, Requirements, & Architecture (Complete)\n• Milestone 2: Offline Study App & Encrypted Database (Complete)\n• Milestone 3: OCR Capture & Preprocessing (Scheduled)',
+                '• Milestone 1: Planning and architecture\n• Milestone 2: Offline study and encrypted storage\n• Milestone 3: Capture, OCR, and line review are in progress; advanced image cleanup and mobile device checks remain.',
                 style: TextStyle(fontSize: 13, height: 1.4),
               ),
             ],
@@ -284,9 +284,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Sample text at ${(a11y.textScale * 100).toInt()}% scale.',
-                            style: TextStyle(
-                              fontSize: 14 * a11y.textScale,
+                            'Aa  Sample text at ${(a11y.textScale * 100).toInt()}% size.',
+                            style: theme.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
                           ),

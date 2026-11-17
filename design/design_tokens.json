@@ -52,11 +52,11 @@
       "colors": {
         "primary": "#3F51B5",
         "primaryContainer": "#E8EAF6",
-        "secondary": "#FF9800",
+        "secondary": "#B45309",
         "secondaryContainer": "#FFF3E0",
         "background": "#F8F9FA",
         "surface": "#FFFFFF",
-        "onSurface": "#212121",
+        "onSurface": "#1A1A24",
         "border": "#E0E0E0"
       },
       "rules": {
@@ -69,14 +69,14 @@
       "name": "Dyslexia Reading Profile",
       "targetNeeds": "Elimination of visual glare, reduced optical crowding, line tracking assistance",
       "colors": {
-        "primary": "#2D6A4F",
-        "primaryContainer": "#D8F3DC",
-        "secondary": "#74C69D",
-        "secondaryContainer": "#E8F8F0",
+        "primary": "#1E3A8A",
+        "primaryContainer": "#DBE4F5",
+        "secondary": "#0F766E",
+        "secondaryContainer": "#D8EEE9",
         "background": "#FBF8EE",
-        "surface": "#F4EEDC",
+        "surface": "#FFFDF8",
         "onSurface": "#2B2D42",
-        "border": "#D8CFBA"
+        "border": "#D5CEBA"
       },
       "typography": {
         "lineSpacingMultiplier": 1.6,
@@ -86,7 +86,7 @@
       "rules": {
         "sessionCardCap": 10,
         "avoidPureBlackOnWhite": true,
-        "ttsAutoReadDefault": true
+        "showSourceLineProvenance": true
       }
     },
     "autism": {
@@ -95,18 +95,16 @@
       "colors": {
         "primary": "#3D6B7A",
         "primaryContainer": "#CFE0E5",
-        "secondary": "#6A8E9A",
+        "secondary": "#2E5B66",
         "secondaryContainer": "#DFE9EC",
         "background": "#EEF3F4",
-        "surface": "#FFFFFF",
-        "onSurface": "#203038",
-        "border": "#C0D2D7"
+        "surface": "#F8FAFB",
+        "onSurface": "#263238",
+        "border": "#CFD8DC"
       },
       "rules": {
         "sessionCardCap": 10,
-        "disableAutoplayMotion": true,
         "requireConfirmationForDestructiveActions": true,
-        "enableSimplifyWordingToggle": true,
         "explicitStepCounters": true
       }
     }

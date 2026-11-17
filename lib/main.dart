@@ -64,13 +64,26 @@ class NeuroScriptApp extends ConsumerWidget {
 
     // Default to the Dyslexia profile (soft cream anti-glare background) if loading
     final currentProfile = profileAsync.value ?? ProfileType.dyslexia;
-    final theme = AppTheme.getTheme(currentProfile, textScale: a11y.textScale);
+    final theme = AppTheme.getTheme(
+      currentProfile,
+      highContrast: a11y.highContrast,
+    );
 
     return MaterialApp.router(
       title: 'NeuroScript AI',
       debugShowCheckedModeBanner: false,
       theme: theme,
       routerConfig: router,
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: media.textScaler.clamp(minScaleFactor: a11y.textScale),
+            disableAnimations: a11y.reducedMotion || media.disableAnimations,
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

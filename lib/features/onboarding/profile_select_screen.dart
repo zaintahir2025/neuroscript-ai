@@ -66,11 +66,11 @@ class _ProfileSelectScreenState extends ConsumerState<ProfileSelectScreen> {
   String _getProfileBadge(ProfileType type) {
     switch (type) {
       case ProfileType.adhd:
-        return 'Micro-Sessions & Dopamine';
+        return 'Short focus sessions';
       case ProfileType.dyslexia:
-        return 'Anti-Glare Cream Palette';
+        return 'Reading comfort';
       case ProfileType.autism:
-        return 'Low Sensory Stimulation';
+        return 'Calm and predictable';
     }
   }
 
@@ -98,7 +98,7 @@ class _ProfileSelectScreenState extends ConsumerState<ProfileSelectScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Select the profile that best fits your focus and reading style. You can change this anytime in Settings.',
+                    'Choose the colors and study pacing that feel right for you. You can change them anytime in Settings; this choice is not a diagnosis.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.75),
                     ),

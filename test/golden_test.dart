@@ -4,8 +4,8 @@
 //
 // Description:
 //   Golden and responsive accessibility layout tests verifying that Library,
-//   Review, and Concept Map screens render without overflow at TextScaler 1.0x
-//   and large accessible TextScaler 2.0x (WP2.5 Verification).
+//   Review, Concept Map, Capture, and OCR Review screens render without
+//   overflow at TextScaler 1.0x and large accessible TextScaler 2.0x (WP2.5 Verification).
 // ============================================================================
 
 import 'package:flutter/material.dart';
@@ -15,9 +15,12 @@ import 'package:neuro_script/core/theme/app_palettes.dart';
 import 'package:neuro_script/core/theme/app_theme.dart';
 import 'package:neuro_script/data/database/database.dart';
 import 'package:neuro_script/data/models/lesson_model.dart';
+import 'package:neuro_script/data/models/ocr_models.dart';
 import 'package:neuro_script/data/repositories/repository_interfaces.dart';
+import 'package:neuro_script/features/capture/capture_screen.dart';
 import 'package:neuro_script/features/concept_map/concept_map_screen.dart';
 import 'package:neuro_script/features/library/library_screen.dart';
+import 'package:neuro_script/features/ocr_review/ocr_review_screen.dart';
 import 'package:neuro_script/features/providers.dart';
 import 'package:neuro_script/features/review/flashcard_review_screen.dart';
 import 'package:neuro_script/services/leitner_scheduler.dart';
@@ -186,6 +189,74 @@ void main() {
           expect(tester.takeException(), isNull);
           expect(find.byType(InteractiveViewer), findsOneWidget);
           expect(find.text('Photosynthesis Map – Map'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'Capture screen renders at text scale ${scale}x without overflow',
+        (tester) async {
+          tester.view.physicalSize = const Size(800, 1200);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [appDatabaseProvider.overrideWithValue(db)],
+              child: MediaQuery(
+                data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                child: MaterialApp(
+                  theme: AppTheme.getTheme(ProfileType.adhd),
+                  home: const CaptureScreen(),
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+          expect(find.text('Scan Handwritten Note'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'OCR Review screen renders at text scale ${scale}x without overflow',
+        (tester) async {
+          tester.view.physicalSize = const Size(800, 1200);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          final sampleLines = [
+            const OcrLine(
+              lineNumber: 1,
+              text: 'Cellular Respiration and Glycolysis',
+            ),
+            const OcrLine(
+              lineNumber: 2,
+              text: 'Glucose is converted to pyruvate in the cytoplasm.',
+            ),
+            const OcrLine(lineNumber: 3, text: 'Produces net 2 ATP molecules.'),
+          ];
+
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [appDatabaseProvider.overrideWithValue(db)],
+              child: MediaQuery(
+                data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                child: MaterialApp(
+                  theme: AppTheme.getTheme(ProfileType.dyslexia),
+                  home: OcrReviewScreen(initialLines: sampleLines),
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+          expect(find.text('3 Numbered Lines Transcribed'), findsOneWidget);
         },
       );
     }

@@ -27,7 +27,7 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   const AppConfig({
     this.generatorMode = GeneratorMode.seed,
-    this.enableCapture = false,
+    this.enableCapture = true,
     this.groundingMode = GroundingMode.off,
     this.enableLocalFallback = false,
     this.enableSimplify = false,
@@ -86,7 +86,7 @@ class AppConfig {
       'GENERATOR_MODE',
       defaultValue: 'seed',
     );
-    const capture = bool.fromEnvironment('ENABLE_CAPTURE', defaultValue: false);
+    const capture = bool.fromEnvironment('ENABLE_CAPTURE', defaultValue: true);
     const groundingStr = String.fromEnvironment(
       'GROUNDING_MODE',
       defaultValue: 'off',

@@ -223,6 +223,17 @@ class WhereIsThisFromSheet extends StatelessWidget {
                     ],
                   ),
                 )
+              else if (source == 'mock')
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    'Demo generated content. Grounding has not been checked.',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                )
               else if (groundingScore != null)
                 Container(
                   margin: const EdgeInsets.symmetric(

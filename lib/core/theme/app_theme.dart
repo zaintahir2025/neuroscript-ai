@@ -32,20 +32,69 @@ class AppTheme {
 
   /// Returns the configured [ThemeData] for the requested [ProfileType].
   ///
-  /// Supports optional [textScale] adjustments (1.0x to 2.0x) configured in Settings.
-  static ThemeData getTheme(ProfileType profile, {double textScale = 1.0}) {
-    switch (profile) {
-      case ProfileType.adhd:
-        return _buildAdhdTheme(textScale);
-      case ProfileType.dyslexia:
-        return _buildDyslexiaTheme(textScale);
-      case ProfileType.autism:
-        return _buildAutismTheme(textScale);
-    }
+  /// Applies stronger outlines when the learner enables high contrast.
+  static ThemeData getTheme(ProfileType profile, {bool highContrast = false}) {
+    final base = switch (profile) {
+      ProfileType.adhd => _buildAdhdTheme(),
+      ProfileType.dyslexia => _buildDyslexiaTheme(),
+      ProfileType.autism => _buildAutismTheme(),
+    };
+    final textColor = base.colorScheme.onSurface;
+    final outlineColor = highContrast ? textColor : base.colorScheme.outline;
+    final radius = profile == ProfileType.autism ? 10.0 : 14.0;
+
+    return base.copyWith(
+      colorScheme: base.colorScheme.copyWith(outline: outlineColor),
+      cardTheme: highContrast
+          ? base.cardTheme.copyWith(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(radius),
+                side: BorderSide(color: textColor, width: 2),
+              ),
+            )
+          : base.cardTheme,
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: base.colorScheme.surface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: outlineColor, width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: outlineColor, width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: base.colorScheme.primary, width: 2),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: outlineColor,
+        thickness: highContrast ? 1.5 : 1,
+        space: 1,
+      ),
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius + 4),
+          side: highContrast
+              ? BorderSide(color: textColor, width: 2)
+              : BorderSide.none,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   /// Builds the ADHD theme: crisp focus, indigo anchors, amber reward accents.
-  static ThemeData _buildAdhdTheme(double textScale) {
+  static ThemeData _buildAdhdTheme() {
     const primary = AppPalettes.adhdPrimary;
     const secondary = AppPalettes.adhdSecondary;
     const bg = AppPalettes.adhdBackground;
@@ -106,7 +155,7 @@ class AppTheme {
   }
 
   /// Builds the Dyslexia theme: warm cream background, relaxed tracking, line height 1.6.
-  static ThemeData _buildDyslexiaTheme(double textScale) {
+  static ThemeData _buildDyslexiaTheme() {
     const primary = AppPalettes.dyslexiaPrimary;
     const secondary = AppPalettes.dyslexiaSecondary;
     const bg = AppPalettes.dyslexiaBackground;
@@ -171,7 +220,7 @@ class AppTheme {
   }
 
   /// Builds the Autism theme: flat cards, zero shadows, calm sage palette, balanced tracking.
-  static ThemeData _buildAutismTheme(double textScale) {
+  static ThemeData _buildAutismTheme() {
     const primary = AppPalettes.autismPrimary;
     const secondary = AppPalettes.autismSecondary;
     const bg = AppPalettes.autismBackground;
