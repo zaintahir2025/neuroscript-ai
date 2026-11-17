@@ -65,8 +65,8 @@ public class MockLessonGenerator : ILessonGenerator
                 Answer: answer,
                 SourceLines: new List<int> { lineNum },
                 Chunks: new List<string> { question, answer },
-                GroundingScore: 0.96,
-                Verified: true
+                GroundingScore: null,
+                Verified: false
             ));
 
             var nodeId = $"n{lineNum}";

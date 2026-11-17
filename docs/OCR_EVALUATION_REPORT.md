@@ -35,7 +35,7 @@ Milestone 3 introduces automated on-device handwriting and print OCR document tr
    - Continuous 8-bit luminance conversion (`img.grayscale`).
    - Dynamic contrast enhancement ($1.35\times$) with $1.05\times$ brightness compensation to emphasize faint graphite/ink strokes against paper textures.
    - Gaussian spatial noise attenuation ($1.5\sigma$).
-   - Horizontal projection variance deskew ($-2.0^\circ$ to $+2.0^\circ$) rotated via bi-linear interpolation (`img.copyRotate`).
+   - Horizontal projection variance deskew (two-pass coarse-to-fine Radon search across $-15.0^\circ$ to $+15.0^\circ$) rotated via bi-linear interpolation (`img.copyRotate`) when tilt $\ge 0.75^\circ$.
 3. **Hard 1-Bit Binarization (Otsu-style Split):**
    - Pixels bifurcated to strict 0 or 255 based on local luminance thresholding ($0.88\times$ mean luminance).
 

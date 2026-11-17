@@ -59,6 +59,54 @@ void main() {
         expect(result.stageSummary, contains('global thresholding'));
       },
     );
+
+    test(
+      'ImagePreprocessor detects and deskews angular tilt on rotated documents',
+      () async {
+        // Create an image with clear text line structure
+        final base = img.Image(width: 800, height: 600);
+        img.fill(base, color: img.ColorRgb8(250, 250, 250));
+        for (var y = 120; y < 480; y += 45) {
+          for (var x = 100; x < 700; x++) {
+            if ((x % 20) < 16) {
+              base.setPixelRgb(x, y, 15, 15, 15);
+              base.setPixelRgb(x, y + 1, 15, 15, 15);
+              base.setPixelRgb(x, y + 2, 15, 15, 15);
+            }
+          }
+        }
+
+        // Rotate by 5.0 degrees
+        final rotated = img.copyRotate(
+          base,
+          angle: 5.0,
+          interpolation: img.Interpolation.linear,
+        );
+        final rawBytes = img.encodeJpg(rotated);
+
+        const preprocessor = ImagePreprocessor();
+        final result = await preprocessor.preprocess(
+          rawBytes,
+          options: const PreprocessingOptions(autoDeskew: true),
+        );
+
+        expect(result.wasRotated, isTrue);
+        expect(result.estimatedSkewAngle.abs(), inInclusiveRange(2.0, 8.0));
+        expect(result.stageSummary, contains('rotation deskew applied'));
+      },
+    );
+
+    test('ImagePreprocessor returns 0.0 tilt for blank or low-contrast images safely', () async {
+      final blank = img.Image(width: 400, height: 400);
+      img.fill(blank, color: img.ColorRgb8(240, 240, 240));
+      final rawBytes = img.encodeJpg(blank);
+
+      const preprocessor = ImagePreprocessor();
+      final result = await preprocessor.preprocess(rawBytes);
+
+      expect(result.estimatedSkewAngle, equals(0.0));
+      expect(result.wasRotated, isFalse);
+    });
   });
 
   group('Phase 3 - OCR Transcription Engine (FR-03)', () {

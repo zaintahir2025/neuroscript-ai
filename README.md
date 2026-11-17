@@ -5,7 +5,7 @@
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-blue.svg)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Release](https://img.shields.io/badge/Release-v0.3.0--m3-brightgreen.svg)](docs/EVALUATION.md)
-[![Tests](https://img.shields.io/badge/Tests-105%20Passing-success.svg)](test/)
+[![Tests](https://img.shields.io/badge/Tests-107%20Passing-success.svg)](test/)
 
 A specialized, accessible study application engineered for students with Attention Deficit Hyperactivity Disorder (ADHD), Dyslexia, and Autism Spectrum Conditions. Built with Flutter and an encrypted local SQLite database (Drift + SQLite3MultipleCiphers), NeuroScript AI delivers an offline-first learning system featuring optical camera & gallery document capture, on-device ML Kit OCR with 1-based line numbering, Leitner spaced repetition flashcards, 2D interactive concept maps, and neurodivergent-friendly UI/UX themes adhering strictly to WCAG 2.1 AA accessibility standards.
 

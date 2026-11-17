@@ -12,7 +12,7 @@ This document provides a comprehensive, evidence-backed evaluation matrix mappin
   - **Milestone 3**: Optical Acquisition (Camera & Gallery), Isolate Preprocessing (Grayscale Gradient Preservation, Contrast Normalization, Geometric Deskew), 1-Based OCR Line Transcription, Line Editor & Hardened ASP.NET Core Proxy Gateway
 - **Branch**: `main`
 - **Release Version**: `v0.3.0-m3`
-- **Automated Test Results**: **105 tests passed, 0 failures** (`flutter test`, verified November 2026)
+- **Automated Test Results**: **107 tests passed, 0 failures** (`flutter test`, verified November 2026)
 - **Static Analysis**: **0 issues found** (`flutter analyze` with hardened rules)
 - **Code Formatting**: **100% compliant** (`dart format --output=none --set-exit-if-changed lib test`)
 - **Backend Proxy Build & Tests**: **0 errors, 0 warnings** (`dotnet build server/NeuroScriptProxy/NeuroScriptProxy.sln` + xUnit test suite)
