@@ -76,6 +76,15 @@ class GeminiVisionRecognizer implements OcrPageRecognizer {
     }
 
     final base64Image = base64Encode(imageBytes);
+    final mimeType =
+        (imageBytes.length >= 8 &&
+            imageBytes[0] == 0x89 &&
+            imageBytes[1] == 0x50 &&
+            imageBytes[2] == 0x4E &&
+            imageBytes[3] == 0x47)
+        ? 'image/png'
+        : 'image/jpeg';
+
     final uri = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=${apiKey.trim()}',
     );
@@ -86,15 +95,16 @@ class GeminiVisionRecognizer implements OcrPageRecognizer {
           'parts': [
             {
               'text':
-                  'You are a high-precision OCR transcription engine. Extract and transcribe every line of text, question, instruction, heading, bullet point, option, and formula from this note or question paper image verbatim.\n'
-                  'Rules:\n'
-                  '1. Transcribe line by line preserving logical line breaks.\n'
-                  '2. Do not omit any text, numbers, or questions.\n'
-                  '3. Do not add introductory or concluding commentary, summaries, or conversational text.\n'
-                  '4. Return ONLY the transcribed lines of text.',
+                  'You are an expert assistive OCR and handwriting transcription engine built for neurodivergent learners (with dysgraphia, dyslexia, or irregular handwriting).\n\n'
+                  'Transcription Instructions:\n'
+                  '1. Decipher irregular, messy, cursive, slanted, or faint handwriting with maximum precision.\n'
+                  '2. Transcribe text in ANY language present in the image (English, Urdu, Arabic, Hindi, etc.), preserving original language and script.\n'
+                  '3. If the image is a typed question paper, quiz, or document, extract every question number, heading, sub-part, prompt, instruction, option, and formula.\n'
+                  '4. Transcribe line by line preserving logical reading order and sentence boundaries.\n'
+                  '5. Do NOT summarize or add commentary, greetings, or markdown disclaimers. Return ONLY the transcribed text lines.',
             },
             {
-              'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image},
+              'inline_data': {'mime_type': mimeType, 'data': base64Image},
             },
           ],
         },
@@ -138,7 +148,18 @@ class GeminiVisionRecognizer implements OcrPageRecognizer {
     }
 
     final rawText = parts.first['text'] as String? ?? '';
-    final rawLines = rawText
+    var cleanedText = rawText.trim();
+    if (cleanedText.startsWith('```')) {
+      final firstNewline = cleanedText.indexOf('\n');
+      if (firstNewline != -1) {
+        cleanedText = cleanedText.substring(firstNewline + 1);
+      }
+      if (cleanedText.endsWith('```')) {
+        cleanedText = cleanedText.substring(0, cleanedText.length - 3).trim();
+      }
+    }
+
+    final rawLines = cleanedText
         .split(RegExp(r'\r\n|\r|\n'))
         .map((l) => l.trim())
         .where((l) => l.isNotEmpty)

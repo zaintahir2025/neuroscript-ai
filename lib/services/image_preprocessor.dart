@@ -117,11 +117,11 @@ class ImagePreprocessor {
     // 3. Grayscale conversion
     final gray = img.grayscale(resized);
 
-    // 4. Contrast normalization (boost contrast to emphasize ink strokes)
+    // 4. Contrast normalization (boost contrast to emphasize ink strokes without washing out faint writing)
     final highContrast = img.adjustColor(
       gray,
       contrast: options.contrastBoost,
-      brightness: 1.05,
+      brightness: 1.0,
     );
 
     // 5. Gentle Gaussian blur to suppress camera sensor noise and paper grain
