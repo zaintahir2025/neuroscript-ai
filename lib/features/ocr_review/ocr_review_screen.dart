@@ -11,7 +11,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/document_hash.dart';
@@ -71,43 +70,27 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
     }
 
     try {
-      // 1. Inspect stored Gemini API key if present
-      String? geminiKey = ref.read(appConfigProvider).geminiApiKey;
-      try {
-        const storage = FlutterSecureStorage();
-        final stored = await storage.read(key: 'gemini_api_key');
-        if (stored != null && stored.trim().isNotEmpty) {
-          geminiKey = stored.trim();
-        }
-      } on Object catch (e) {
-        debugPrint('Secure storage key read notice: $e');
-      }
-
       final isNativeMobile =
           !kIsWeb &&
           (defaultTargetPlatform == TargetPlatform.android ||
               defaultTargetPlatform == TargetPlatform.iOS);
 
-      // On Web or Desktop without an API key, guide user directly to Vision setup or manual entry
-      if (!isNativeMobile && (geminiKey == null || geminiKey.trim().isEmpty)) {
+      if (!isNativeMobile) {
         if (!mounted) return;
         setState(() {
           _isLoading = false;
           _statusMessage = '';
-          _processingError = 'Web & desktop browsers require Smart AI Vision (Gemini) or manual text entry.';
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _transcribeWithGeminiVision();
-          }
+          _processingError =
+              'On Web and Desktop browsers, on-device ML Kit camera recognition is not available. '
+              'You can paste notes or questions directly, load demo exam notes, or add lines manually.';
         });
         return;
       }
 
-      // 2. Preprocess the captured pages in a background isolate.
+      // 1. Preprocess the captured pages in a background isolate.
       setState(
         () =>
-            _statusMessage = 'Stage 2: Enhancing image contrast & deskewing...',
+            _statusMessage = 'Stage 1: Enhancing image contrast & deskewing...',
       );
       const preprocessor = ImagePreprocessor();
       final processedPages = <Uint8List>[];
@@ -122,16 +105,15 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         }
       }
 
-      // 3. Transcribe with dual-pass ML Kit & optional Smart AI Vision
+      // 2. Transcribe with dual-pass ML Kit on-device recognition
       setState(
         () => _statusMessage =
-            'Stage 3: Transcribing handwritten lines (ML Kit)...',
+            'Stage 2: Transcribing handwritten lines (ML Kit)...',
       );
       const ocrService = OcrService();
       final ocrResult = await ocrService.processPages(
         processedPages,
         fallbackRawPages: widget.capturedPages,
-        geminiApiKey: geminiKey,
       );
 
       if (!mounted) return;
@@ -140,21 +122,10 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         _isLoading = false;
       });
 
-      if (_lines.isEmpty &&
-          isNativeMobile &&
-          (geminiKey == null || geminiKey.trim().isEmpty)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'No text detected by local scanner. For faint pencil or dysgraphic handwriting, try Smart AI Vision!',
-            ),
-            action: SnackBarAction(
-              label: 'TRY AI VISION',
-              onPressed: () => _transcribeWithGeminiVision(),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
+      if (_lines.isEmpty) {
+        setState(() {
+          _processingError = 'No text detected in the captured photo. Please ensure good lighting and contrast, or paste/add lines manually.';
+        });
       }
     } on Object catch (e) {
       debugPrint('OCR pipeline error: $e');
@@ -164,159 +135,6 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
           _isLoading = false;
         });
       }
-    }
-  }
-
-  Future<void> _transcribeWithGeminiVision([String? providedKey]) async {
-    const storage = FlutterSecureStorage();
-    var key = providedKey ?? ref.read(appConfigProvider).geminiApiKey;
-    if (key.isEmpty) {
-      try {
-        final stored = await storage.read(key: 'gemini_api_key');
-        if (stored != null && stored.trim().isNotEmpty) {
-          key = stored.trim();
-        }
-      } on Object catch (e) {
-        debugPrint('Storage read error: $e');
-      }
-    }
-
-    if (key.isEmpty) {
-      if (!mounted) return;
-      final keyController = TextEditingController();
-      bool obscure = true;
-      final enteredKey = await showDialog<String>(
-        context: context,
-        builder: (ctx) => StatefulBuilder(
-          builder: (context, setDlgState) => AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.auto_awesome, color: Colors.amber),
-                SizedBox(width: 8),
-                Text('Smart AI Vision OCR'),
-              ],
-            ),
-            content: SizedBox(
-              width: 480,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'High-precision Vision AI designed for neurodivergent handwriting:\n'
-                      '• Reads messy, dysgraphic, or faint pencil handwriting\n'
-                      '• Transcribes typed exam papers, formulas & tables\n'
-                      '• Supports English, Urdu, Hindi, Arabic, and all scripts\n'
-                      '• Works seamlessly across Web, Android, iOS, and Desktop',
-                      style: TextStyle(fontSize: 13, height: 1.4),
-                    ),
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: keyController,
-                      obscureText: obscure,
-                      decoration: InputDecoration(
-                        labelText: 'Gemini API Key',
-                        hintText: 'AIzaSy...',
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.key),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscure ? Icons.visibility : Icons.visibility_off,
-                          ),
-                          onPressed: () =>
-                              setDlgState(() => obscure = !obscure),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Key is saved securely on your device for future scans.',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _loadSampleExamLines();
-                },
-                child: const Text('Try Demo Exam Note'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel'),
-              ),
-              FilledButton.icon(
-                onPressed: () {
-                  final k = keyController.text.trim();
-                  if (k.isNotEmpty) Navigator.of(ctx).pop(k);
-                },
-                icon: const Icon(Icons.check),
-                label: const Text('Save & Transcribe'),
-              ),
-            ],
-          ),
-        ),
-      );
-
-      if (enteredKey == null || enteredKey.isEmpty) return;
-      key = enteredKey;
-      try {
-        await storage.write(key: 'gemini_api_key', value: key);
-      } on Object catch (e) {
-        debugPrint('Storage write error: $e');
-      }
-    }
-
-    if (widget.capturedPages.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No captured pages found. You can paste notes or load demo exam lines.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _statusMessage = 'Transcribing with Smart Gemini Vision AI...';
-      _processingError = null;
-    });
-
-    try {
-      final ocrService = OcrService(
-        recognizer: GeminiVisionRecognizer(apiKey: key),
-      );
-      final res = await ocrService.processPages(widget.capturedPages);
-      if (!mounted) return;
-      setState(() {
-        _lines.clear();
-        _lines.addAll(res.lines);
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Smart AI Vision transcribed ${res.lines.length} lines with high precision!',
-          ),
-          backgroundColor: Colors.green.shade800,
-        ),
-      );
-    } on Exception catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _processingError = 'Smart Vision failed: $e';
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('AI transcription failed: $e')));
     }
   }
 
@@ -776,14 +594,14 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         title: const Text('Review OCR Lines'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.auto_awesome),
-            tooltip: 'Smart AI Vision OCR (Gemini)',
-            onPressed: () => _transcribeWithGeminiVision(),
-          ),
-          IconButton(
             icon: const Icon(Icons.paste),
             tooltip: 'Paste Notes or Questions',
             onPressed: () => _pasteNoteDialog(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.school_outlined),
+            tooltip: 'Load Demo Exam Note',
+            onPressed: () => _loadSampleExamLines(),
           ),
           IconButton(
             icon: const Icon(Icons.add),
@@ -846,9 +664,9 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
                             ),
                             const SizedBox(height: 8),
                             ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 480),
+                              constraints: const BoxConstraints(maxWidth: 520),
                               child: Text(
-                                _processingError != null ? _processingError! : 'On-device scanner did not detect text. Faint pencil marks, dysgraphic handwriting, or complex multi-lingual exam papers can be transcribed with Smart AI Vision.',
+                                _processingError ?? 'On-device scanner did not detect text. You can paste notes directly, load demo exam notes, or add lines manually.',
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
@@ -862,14 +680,6 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
                               alignment: WrapAlignment.center,
                               children: [
                                 FilledButton.icon(
-                                  onPressed: () =>
-                                      _transcribeWithGeminiVision(),
-                                  icon: const Icon(Icons.auto_awesome),
-                                  label: const Text(
-                                    'Transcribe with Smart AI Vision',
-                                  ),
-                                ),
-                                OutlinedButton.icon(
                                   onPressed: () => _pasteNoteDialog(),
                                   icon: const Icon(Icons.paste),
                                   label: const Text('Paste Notes / Questions'),
@@ -879,7 +689,7 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
                                   icon: const Icon(Icons.school_outlined),
                                   label: const Text('Load Demo Exam Note'),
                                 ),
-                                ElevatedButton.icon(
+                                OutlinedButton.icon(
                                   onPressed: () => _addNewLine(),
                                   icon: const Icon(Icons.add),
                                   label: const Text('Add Line Manually'),

@@ -56,590 +56,153 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NeuroScript AI'),
-        actions: [
-          profileAsync.when(
-            data: (p) => p == null
-                ? const SizedBox.shrink()
-                : Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        p.displayName,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.document_scanner),
-            tooltip: 'Scan Notes (OCR)',
-            onPressed: () => _showOcrSourceSheet(context),
-          ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: (deletedAsync.asData?.value.length ?? 0) > 0,
-              label: Text('${deletedAsync.asData?.value.length ?? 0}'),
-              child: const Icon(Icons.delete_sweep_outlined),
-            ),
-            tooltip: 'Recently Deleted Sets',
-            onPressed: () => _showRecentlyDeletedSheet(
-              context,
-              ref,
-              deletedAsync.asData?.value ?? [],
-            ),
-          ),
-          PopupMenuButton<String>(
-            tooltip: 'More options',
-            icon: const Icon(Icons.more_horiz),
-            onSelected: (value) {
-              switch (value) {
-                case 'maps':
-                  _showConceptMapPicker(context, ref);
-                case 'scan_ocr':
-                  _showOcrSourceSheet(context);
-                case 'progress':
-                  context.push('/progress');
-                case 'settings':
-                  context.push('/settings');
-                case 'demo_import':
-                  _showPasteTestNoteDialog(context, ref);
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'scan_ocr',
-                child: ListTile(
-                  leading: Icon(Icons.document_scanner_outlined),
-                  title: Text('Scan Notes (OCR)'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'maps',
-                child: ListTile(
-                  leading: Icon(Icons.account_tree_outlined),
-                  title: Text('Concept maps'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'progress',
-                child: ListTile(
-                  leading: Icon(Icons.bar_chart_outlined),
-                  title: Text('Progress'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: ListTile(
-                  leading: Icon(Icons.settings_outlined),
-                  title: Text('Settings'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              if (config.demoMode)
-                const PopupMenuItem(
-                  value: 'demo_import',
-                  child: ListTile(
-                    leading: Icon(Icons.note_add_outlined),
-                    title: Text('Paste test notes'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Center(
+        titleSpacing: 0,
+        title: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 960),
-            child: RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(allLessonsProvider);
-                ref.invalidate(schedulerMetricsProvider);
-              },
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
+            constraints: const BoxConstraints(maxWidth: 1280),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 children: [
-                  // Study Dashboard Banner
-                  metricsAsync.when(
-                    data: (metrics) => Card(
-                      color: colorScheme.primary,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        metrics.dueToday == 0
-                                            ? 'You’re all caught up'
-                                            : '${metrics.dueToday} cards ready to review',
-                                        style: theme.textTheme.titleLarge
-                                            ?.copyWith(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        '${metrics.masteredCards} of ${metrics.totalCards} cards mastered',
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.9,
-                                              ),
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Icon(
-                                  metrics.dueToday == 0
-                                      ? Icons.check_circle_outline
-                                      : Icons.alarm_on,
-                                  color: Colors.white,
-                                  size: 32,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            TextButton.icon(
-                              onPressed: metrics.dueToday > 0
-                                  ? () => _showDueLessonPicker(
-                                      context,
-                                      lessonsAsync.asData?.value ?? const [],
-                                    )
-                                  : () => _showOcrSourceSheet(context),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size(48, 48),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                              ),
-                              icon: Icon(
-                                metrics.dueToday > 0
-                                    ? Icons.play_arrow
-                                    : Icons.add_a_photo_outlined,
-                              ),
-                              label: Text(
-                                metrics.dueToday > 0
-                                    ? 'Choose a set to study'
-                                    : 'Add notes to study',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    loading: () => const SizedBox(height: 90),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Search and Filter Bar
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            labelText: 'Search study sets',
-                            hintText: 'Search by lesson title',
-                            prefixIcon: const Icon(Icons.search, size: 20),
-                            suffixIcon: _searchQuery.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear, size: 18),
-                                    tooltip: 'Clear search',
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      setState(() => _searchQuery = '');
-                                    },
-                                  )
-                                : null,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onChanged: (val) {
-                            setState(() => _searchQuery = val.trim());
-                          },
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/branding/app_icon_512.png',
+                          width: 32,
+                          height: 32,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              const Icon(Icons.psychology, size: 28),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      PopupMenuButton<String>(
-                        tooltip: 'Sort lessons ($_selectedSort)',
-                        icon: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: colorScheme.outline.withValues(alpha: 0.3),
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.sort,
-                            color: colorScheme.primary,
-                            size: 20,
-                          ),
+                      Text(
+                        'NeuroScript AI',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          letterSpacing: -0.2,
                         ),
-                        onSelected: (val) =>
-                            setState(() => _selectedSort = val),
-                        itemBuilder: (ctx) => [
-                          const PopupMenuItem(
-                            value: 'Default',
-                            child: Text('Default Order'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'Title',
-                            child: Text('Title (A-Z)'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'Due Count',
-                            child: Text('Due Cards (Highest First)'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'Card Count',
-                            child: Text('Total Cards (Highest First)'),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 10),
-
-                  // Filter Chips
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      FilterChip(
-                        label: const Text('All'),
-                        selected: _selectedFilter == 'All',
-                        onSelected: (_) =>
-                            setState(() => _selectedFilter = 'All'),
-                      ),
-                      FilterChip(
-                        label: const Text('Due Today'),
-                        selected: _selectedFilter == 'Due Today',
-                        onSelected: (_) =>
-                            setState(() => _selectedFilter = 'Due Today'),
-                      ),
-                      FilterChip(
-                        label: const Text('Caught up'),
-                        selected: _selectedFilter == 'Caught up',
-                        onSelected: (_) =>
-                            setState(() => _selectedFilter = 'Caught up'),
-                      ),
-                    ],
+                  const Spacer(),
+                  profileAsync.when(
+                    data: (p) => p == null
+                        ? const SizedBox.shrink()
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                p.displayName,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                   ),
-
-                  const SizedBox(height: 14),
-
-                  const SectionHeader(title: 'My Study Lessons'),
-
-                  // Lessons List
-                  lessonsAsync.when(
-                    data: (lessons) {
-                      if (lessons.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 48),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.auto_stories_outlined,
-                                  size: 64,
-                                  color: colorScheme.outline,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No lessons found in library.',
-                                  style: theme.textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Add a set of notes to create your first study set.',
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                                const SizedBox(height: 16),
-                                FilledButton.icon(
-                                  icon: const Icon(Icons.document_scanner),
-                                  label: const Text('Scan Notes (OCR)'),
-                                  onPressed: () => _showOcrSourceSheet(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.document_scanner),
+                    tooltip: 'Scan Notes (OCR)',
+                    onPressed: () => _showOcrSourceSheet(context),
+                  ),
+                  IconButton(
+                    icon: Badge(
+                      isLabelVisible:
+                          (deletedAsync.asData?.value.length ?? 0) > 0,
+                      label: Text('${deletedAsync.asData?.value.length ?? 0}'),
+                      child: const Icon(Icons.delete_sweep_outlined),
+                    ),
+                    tooltip: 'Recently Deleted Sets',
+                    onPressed: () => _showRecentlyDeletedSheet(
+                      context,
+                      ref,
+                      deletedAsync.asData?.value ?? [],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    tooltip: 'More options',
+                    icon: const Icon(Icons.more_horiz),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'maps':
+                          _showConceptMapPicker(context, ref);
+                        case 'scan_ocr':
+                          _showOcrSourceSheet(context);
+                        case 'progress':
+                          context.push('/progress');
+                        case 'settings':
+                          context.push('/settings');
+                        case 'demo_import':
+                          _showPasteTestNoteDialog(context, ref);
                       }
-
-                      // Apply search filter
-                      var filtered = lessons.where((l) {
-                        if (_searchQuery.isNotEmpty &&
-                            !l.title.toLowerCase().contains(
-                              _searchQuery.toLowerCase(),
-                            )) {
-                          return false;
-                        }
-                        if (_selectedFilter == 'Due Today' && l.dueCount == 0) {
-                          return false;
-                        }
-                        if (_selectedFilter == 'Caught up' && l.dueCount > 0) {
-                          return false;
-                        }
-                        return true;
-                      }).toList();
-
-                      // Apply sorting
-                      if (_selectedSort == 'Title') {
-                        filtered.sort((a, b) => a.title.compareTo(b.title));
-                      } else if (_selectedSort == 'Due Count') {
-                        filtered.sort(
-                          (a, b) => b.dueCount.compareTo(a.dueCount),
-                        );
-                      } else if (_selectedSort == 'Card Count') {
-                        filtered.sort(
-                          (a, b) => b.cardCount.compareTo(a.cardCount),
-                        );
-                      }
-
-                      if (filtered.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 36),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.filter_list_off,
-                                  size: 48,
-                                  color: colorScheme.outline,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _searchQuery.isNotEmpty
-                                      ? 'No lessons match "$_searchQuery"'
-                                      : _selectedFilter == 'Due Today'
-                                      ? 'No cards are due today.'
-                                      : 'You’re caught up in every set.',
-                                  style: theme.textTheme.titleMedium,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _searchQuery = '';
-                                      _selectedFilter = 'All';
-                                    });
-                                  },
-                                  child: const Text('Reset Search & Filters'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-
-                      return LayoutBuilder(
-                        builder: (context, constraints) {
-                          final textScale = MediaQuery.textScalerOf(context)
-                              .scale(1.0);
-                          final isWide =
-                              constraints.maxWidth >= 640 && textScale < 1.4;
-                          if (isWide) {
-                            final extent = (148.0 * textScale).clamp(
-                              148.0,
-                              320.0,
-                            );
-                            return GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    mainAxisExtent: extent,
-                                    crossAxisSpacing: 14,
-                                    mainAxisSpacing: 14,
-                                  ),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                final l = filtered[index];
-                                return CardTile(
-                                  margin: EdgeInsets.zero,
-                                  title: l.title,
-                                  subtitle:
-                                      '${l.cardCount} cards • ${l.dueCount} due today',
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primary.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Icon(
-                                      Icons.menu_book,
-                                      color: colorScheme.primary,
-                                      size: 22,
-                                    ),
-                                  ),
-                                  trailing: _buildLessonCardTrailing(
-                                    context,
-                                    ref,
-                                    l,
-                                    colorScheme,
-                                  ),
-                                  onTap: () {
-                                    context.push('/lesson/${l.lessonId}');
-                                  },
-                                );
-                              },
-                            );
-                          }
-
-                          return Column(
-                            children: filtered.map((l) {
-                              return CardTile(
-                                title: l.title,
-                                subtitle:
-                                    '${l.cardCount} cards • ${l.dueCount} due today',
-                                leading: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(
-                                      alpha: 0.1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.menu_book,
-                                    color: colorScheme.primary,
-                                    size: 22,
-                                  ),
-                                ),
-                                trailing: _buildLessonCardTrailing(
-                                  context,
-                                  ref,
-                                  l,
-                                  colorScheme,
-                                ),
-                                onTap: () {
-                                  context.push('/lesson/${l.lessonId}');
-                                },
-                              );
-                            }).toList(),
-                          );
-                        },
-                      );
                     },
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32),
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                    error: (err, _) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.cloud_off_outlined,
-                              size: 48,
-                              color: colorScheme.error,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Database connection error: $err',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: colorScheme.error),
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: 12,
-                              runSpacing: 8,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    ref.invalidate(allLessonsProvider);
-                                    ref.invalidate(deletedLessonsProvider);
-                                    ref.invalidate(schedulerMetricsProvider);
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Retry Connection'),
-                                ),
-                                TextButton.icon(
-                                  onPressed: () async {
-                                    try {
-                                      await ref
-                                          .read(appDatabaseProvider)
-                                          .clearAllData();
-                                      await ref
-                                          .read(seedImporterProvider)
-                                          .importSeedLessons();
-                                    } on Exception catch (e, st) {
-                                      debugPrint(
-                                        'Failed to reset and re-load seeds: $e\n$st',
-                                      );
-                                    }
-                                    ref.invalidate(allLessonsProvider);
-                                    ref.invalidate(deletedLessonsProvider);
-                                    ref.invalidate(schedulerMetricsProvider);
-                                  },
-                                  icon: const Icon(Icons.restart_alt),
-                                  label: const Text(
-                                    'Reset & Re-load Seed Lessons',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'scan_ocr',
+                        child: ListTile(
+                          leading: Icon(Icons.document_scanner_outlined),
+                          title: Text('Scan Notes (OCR)'),
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
-                    ),
+                      const PopupMenuItem(
+                        value: 'maps',
+                        child: ListTile(
+                          leading: Icon(Icons.account_tree_outlined),
+                          title: Text('Concept maps'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'progress',
+                        child: ListTile(
+                          leading: Icon(Icons.bar_chart_outlined),
+                          title: Text('Progress'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'settings',
+                        child: ListTile(
+                          leading: Icon(Icons.settings_outlined),
+                          title: Text('Settings'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      if (config.demoMode)
+                        const PopupMenuItem(
+                          value: 'demo_import',
+                          child: ListTile(
+                            leading: Icon(Icons.note_add_outlined),
+                            title: Text('Paste test notes'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -647,16 +210,525 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
         ),
       ),
-      // Capture button: hidden in M1-M2 via enableCapture flag
-      floatingActionButton: config.enableCapture
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                _showOcrSourceSheet(context);
-              },
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Scan Note'),
-            )
-          : null,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1280),
+            child: Stack(
+              children: [
+                RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(allLessonsProvider);
+                    ref.invalidate(schedulerMetricsProvider);
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      top: 12,
+                      bottom: 96,
+                    ),
+                    children: [
+                      // Study Dashboard Banner
+                      metricsAsync.when(
+                        data: (metrics) => Card(
+                          color: colorScheme.primary,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            metrics.dueToday == 0
+                                                ? 'You’re all caught up'
+                                                : '${metrics.dueToday} cards ready to review',
+                                            style: theme.textTheme.titleLarge
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '${metrics.masteredCards} of ${metrics.totalCards} cards mastered',
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.9),
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Icon(
+                                      metrics.dueToday == 0
+                                          ? Icons.check_circle_outline
+                                          : Icons.alarm_on,
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: metrics.dueToday > 0
+                                      ? () => _showDueLessonPicker(
+                                          context,
+                                          lessonsAsync.asData?.value ??
+                                              const [],
+                                        )
+                                      : () => _showOcrSourceSheet(context),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size(48, 48),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                  ),
+                                  icon: Icon(
+                                    metrics.dueToday > 0
+                                        ? Icons.play_arrow
+                                        : Icons.add_a_photo_outlined,
+                                  ),
+                                  label: Text(
+                                    metrics.dueToday > 0
+                                        ? 'Choose a set to study'
+                                        : 'Add notes to study',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        loading: () => const SizedBox(height: 90),
+                        error: (_, _) => const SizedBox.shrink(),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Search and Filter Bar
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              decoration: InputDecoration(
+                                labelText: 'Search study sets',
+                                hintText: 'Search by lesson title',
+                                prefixIcon: const Icon(Icons.search, size: 20),
+                                suffixIcon: _searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 18),
+                                        tooltip: 'Clear search',
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          setState(() => _searchQuery = '');
+                                        },
+                                      )
+                                    : null,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onChanged: (val) {
+                                setState(() => _searchQuery = val.trim());
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          PopupMenuButton<String>(
+                            tooltip: 'Sort lessons ($_selectedSort)',
+                            icon: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: colorScheme.outline.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.sort,
+                                color: colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                            onSelected: (val) =>
+                                setState(() => _selectedSort = val),
+                            itemBuilder: (ctx) => [
+                              const PopupMenuItem(
+                                value: 'Default',
+                                child: Text('Default Order'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'Title',
+                                child: Text('Title (A-Z)'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'Due Count',
+                                child: Text('Due Cards (Highest First)'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'Card Count',
+                                child: Text('Total Cards (Highest First)'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Filter Chips
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          FilterChip(
+                            label: const Text('All'),
+                            selected: _selectedFilter == 'All',
+                            onSelected: (_) =>
+                                setState(() => _selectedFilter = 'All'),
+                          ),
+                          FilterChip(
+                            label: const Text('Due Today'),
+                            selected: _selectedFilter == 'Due Today',
+                            onSelected: (_) =>
+                                setState(() => _selectedFilter = 'Due Today'),
+                          ),
+                          FilterChip(
+                            label: const Text('Caught up'),
+                            selected: _selectedFilter == 'Caught up',
+                            onSelected: (_) =>
+                                setState(() => _selectedFilter = 'Caught up'),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      const SectionHeader(title: 'My Study Lessons'),
+
+                      // Lessons List
+                      lessonsAsync.when(
+                        data: (lessons) {
+                          if (lessons.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 48),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.auto_stories_outlined,
+                                      size: 64,
+                                      color: colorScheme.outline,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No lessons found in library.',
+                                      style: theme.textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Add a set of notes to create your first study set.',
+                                      textAlign: TextAlign.center,
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    FilledButton.icon(
+                                      icon: const Icon(Icons.document_scanner),
+                                      label: const Text('Scan Notes (OCR)'),
+                                      onPressed: () =>
+                                          _showOcrSourceSheet(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
+                          // Apply search filter
+                          var filtered = lessons.where((l) {
+                            if (_searchQuery.isNotEmpty &&
+                                !l.title.toLowerCase().contains(
+                                  _searchQuery.toLowerCase(),
+                                )) {
+                              return false;
+                            }
+                            if (_selectedFilter == 'Due Today' &&
+                                l.dueCount == 0) {
+                              return false;
+                            }
+                            if (_selectedFilter == 'Caught up' &&
+                                l.dueCount > 0) {
+                              return false;
+                            }
+                            return true;
+                          }).toList();
+
+                          // Apply sorting
+                          if (_selectedSort == 'Title') {
+                            filtered.sort((a, b) => a.title.compareTo(b.title));
+                          } else if (_selectedSort == 'Due Count') {
+                            filtered.sort(
+                              (a, b) => b.dueCount.compareTo(a.dueCount),
+                            );
+                          } else if (_selectedSort == 'Card Count') {
+                            filtered.sort(
+                              (a, b) => b.cardCount.compareTo(a.cardCount),
+                            );
+                          }
+
+                          if (filtered.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 36),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.filter_list_off,
+                                      size: 48,
+                                      color: colorScheme.outline,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _searchQuery.isNotEmpty
+                                          ? 'No lessons match "$_searchQuery"'
+                                          : _selectedFilter == 'Due Today'
+                                          ? 'No cards are due today.'
+                                          : 'You’re caught up in every set.',
+                                      style: theme.textTheme.titleMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() {
+                                          _searchQuery = '';
+                                          _selectedFilter = 'All';
+                                        });
+                                      },
+                                      child: const Text(
+                                        'Reset Search & Filters',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final textScale = MediaQuery.textScalerOf(context)
+                                  .scale(1.0);
+                              final int columns;
+                              if (constraints.maxWidth >= 960 &&
+                                  textScale < 1.4) {
+                                columns = 3;
+                              } else if (constraints.maxWidth >= 600 &&
+                                  textScale < 1.4) {
+                                columns = 2;
+                              } else {
+                                columns = 1;
+                              }
+
+                              if (columns > 1) {
+                                final extent = (148.0 * textScale).clamp(
+                                  148.0,
+                                  320.0,
+                                );
+                                return GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: columns,
+                                        mainAxisExtent: extent,
+                                        crossAxisSpacing: 14,
+                                        mainAxisSpacing: 14,
+                                      ),
+                                  itemCount: filtered.length,
+                                  itemBuilder: (context, index) {
+                                    final l = filtered[index];
+                                    return CardTile(
+                                      margin: EdgeInsets.zero,
+                                      title: l.title,
+                                      subtitle:
+                                          '${l.cardCount} cards • ${l.dueCount} due today',
+                                      leading: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.primary.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.menu_book,
+                                          color: colorScheme.primary,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      trailing: _buildLessonCardTrailing(
+                                        context,
+                                        ref,
+                                        l,
+                                        colorScheme,
+                                      ),
+                                      onTap: () {
+                                        context.push('/lesson/${l.lessonId}');
+                                      },
+                                    );
+                                  },
+                                );
+                              }
+
+                              return Column(
+                                children: filtered.map((l) {
+                                  return CardTile(
+                                    title: l.title,
+                                    subtitle:
+                                        '${l.cardCount} cards • ${l.dueCount} due today',
+                                    leading: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        Icons.menu_book,
+                                        color: colorScheme.primary,
+                                        size: 22,
+                                      ),
+                                    ),
+                                    trailing: _buildLessonCardTrailing(
+                                      context,
+                                      ref,
+                                      l,
+                                      colorScheme,
+                                    ),
+                                    onTap: () {
+                                      context.push('/lesson/${l.lessonId}');
+                                    },
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          );
+                        },
+                        loading: () => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32),
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        error: (err, _) => Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.cloud_off_outlined,
+                                  size: 48,
+                                  color: colorScheme.error,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Database connection error: $err',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: colorScheme.error),
+                                ),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: 12,
+                                  runSpacing: 8,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        ref.invalidate(allLessonsProvider);
+                                        ref.invalidate(deletedLessonsProvider);
+                                        ref.invalidate(
+                                          schedulerMetricsProvider,
+                                        );
+                                      },
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('Retry Connection'),
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: () async {
+                                        try {
+                                          await ref
+                                              .read(appDatabaseProvider)
+                                              .clearAllData();
+                                          await ref
+                                              .read(seedImporterProvider)
+                                              .importSeedLessons();
+                                        } on Exception catch (e, st) {
+                                          debugPrint(
+                                            'Failed to reset and re-load seeds: $e\n$st',
+                                          );
+                                        }
+                                        ref.invalidate(allLessonsProvider);
+                                        ref.invalidate(deletedLessonsProvider);
+                                        ref.invalidate(
+                                          schedulerMetricsProvider,
+                                        );
+                                      },
+                                      icon: const Icon(Icons.restart_alt),
+                                      label: const Text(
+                                        'Reset & Re-load Seed Lessons',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Floating Action Button anchored to the responsive content boundary
+                if (config.enableCapture)
+                  Positioned(
+                    right: 20,
+                    bottom: 24,
+                    child: FloatingActionButton.extended(
+                      onPressed: () {
+                        _showOcrSourceSheet(context);
+                      },
+                      icon: const Icon(Icons.camera_alt),
+                      label: const Text('Scan Note'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
