@@ -56,178 +56,182 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1280),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          'assets/branding/app_icon_512.png',
-                          width: 32,
-                          height: 32,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const Icon(Icons.psychology, size: 28),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'NeuroScript AI',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  profileAsync.when(
-                    data: (p) => p == null
-                        ? const SizedBox.shrink()
-                        : Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.4,
-                                ),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                p.displayName,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.document_scanner),
-                    tooltip: 'Scan Notes (OCR)',
-                    onPressed: () => _showOcrSourceSheet(context),
-                  ),
-                  IconButton(
-                    icon: Badge(
-                      isLabelVisible:
-                          (deletedAsync.asData?.value.length ?? 0) > 0,
-                      label: Text('${deletedAsync.asData?.value.length ?? 0}'),
-                      child: const Icon(Icons.delete_sweep_outlined),
-                    ),
-                    tooltip: 'Recently Deleted Sets',
-                    onPressed: () => _showRecentlyDeletedSheet(
-                      context,
-                      ref,
-                      deletedAsync.asData?.value ?? [],
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    tooltip: 'More options',
-                    icon: const Icon(Icons.more_horiz),
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'maps':
-                          _showConceptMapPicker(context, ref);
-                        case 'scan_ocr':
-                          _showOcrSourceSheet(context);
-                        case 'progress':
-                          context.push('/progress');
-                        case 'settings':
-                          context.push('/settings');
-                        case 'demo_import':
-                          _showPasteTestNoteDialog(context, ref);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'scan_ocr',
-                        child: ListTile(
-                          leading: Icon(Icons.document_scanner_outlined),
-                          title: Text('Scan Notes (OCR)'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'maps',
-                        child: ListTile(
-                          leading: Icon(Icons.account_tree_outlined),
-                          title: Text('Concept maps'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'progress',
-                        child: ListTile(
-                          leading: Icon(Icons.bar_chart_outlined),
-                          title: Text('Progress'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'settings',
-                        child: ListTile(
-                          leading: Icon(Icons.settings_outlined),
-                          title: Text('Settings'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      if (config.demoMode)
-                        const PopupMenuItem(
-                          value: 'demo_import',
-                          child: ListTile(
-                            leading: Icon(Icons.note_add_outlined),
-                            title: Text('Paste test notes'),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/branding/app_icon_512.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    const Icon(Icons.psychology, size: 28),
               ),
             ),
-          ),
+            const SizedBox(width: 10),
+            Text(
+              'NeuroScript AI',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
         ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1280),
-            child: Stack(
-              children: [
-                RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(allLessonsProvider);
-                    ref.invalidate(schedulerMetricsProvider);
-                  },
-                  child: ListView(
-                    padding: const EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      top: 12,
-                      bottom: 96,
+        actions: [
+          profileAsync.when(
+            data: (p) => p == null
+                ? const SizedBox.shrink()
+                : Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
                     ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: colorScheme.primary.withValues(
+                          alpha: 0.4,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        p.displayName,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: const Icon(Icons.document_scanner),
+            tooltip: 'Scan Notes (OCR)',
+            onPressed: () => _showOcrSourceSheet(context),
+          ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible:
+                  (deletedAsync.asData?.value.length ?? 0) > 0,
+              label: Text('${deletedAsync.asData?.value.length ?? 0}'),
+              child: const Icon(Icons.delete_sweep_outlined),
+            ),
+            tooltip: 'Recently Deleted Sets',
+            onPressed: () => _showRecentlyDeletedSheet(
+              context,
+              ref,
+              deletedAsync.asData?.value ?? [],
+            ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'More options',
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (value) {
+              switch (value) {
+                case 'maps':
+                  _showConceptMapPicker(context, ref);
+                case 'scan_ocr':
+                  _showOcrSourceSheet(context);
+                case 'progress':
+                  context.push('/progress');
+                case 'settings':
+                  context.push('/settings');
+                case 'demo_import':
+                  _showPasteTestNoteDialog(context, ref);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'scan_ocr',
+                child: ListTile(
+                  leading: Icon(Icons.document_scanner_outlined),
+                  title: Text('Scan Notes (OCR)'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'maps',
+                child: ListTile(
+                  leading: Icon(Icons.account_tree_outlined),
+                  title: Text('Concept maps'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'progress',
+                child: ListTile(
+                  leading: Icon(Icons.bar_chart_outlined),
+                  title: Text('Progress'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: ListTile(
+                  leading: Icon(Icons.settings_outlined),
+                  title: Text('Settings'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (config.demoMode)
+                const PopupMenuItem(
+                  value: 'demo_import',
+                  child: ListTile(
+                    leading: Icon(Icons.note_add_outlined),
+                    title: Text('Paste test notes'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      floatingActionButton: config.enableCapture
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                _showOcrSourceSheet(context);
+              },
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Scan Note'),
+            )
+          : null,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(allLessonsProvider);
+            ref.invalidate(schedulerMetricsProvider);
+          },
+          child: LayoutBuilder(
+            builder: (context, viewportConstraints) {
+              final double horizontalPadding;
+              if (viewportConstraints.maxWidth > 1400) {
+                horizontalPadding = (viewportConstraints.maxWidth - 1320) / 2;
+              } else if (viewportConstraints.maxWidth > 768) {
+                horizontalPadding = 32.0;
+              } else {
+                horizontalPadding = 16.0;
+              }
+
+              return ListView(
+                padding: EdgeInsets.only(
+                  left: horizontalPadding,
+                  right: horizontalPadding,
+                  top: 12,
+                  bottom: 96,
+                ),
                     children: [
                       // Study Dashboard Banner
                       metricsAsync.when(
@@ -709,28 +713,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                // Floating Action Button anchored to the responsive content boundary
-                if (config.enableCapture)
-                  Positioned(
-                    right: 20,
-                    bottom: 24,
-                    child: FloatingActionButton.extended(
-                      onPressed: () {
-                        _showOcrSourceSheet(context);
-                      },
-                      icon: const Icon(Icons.camera_alt),
-                      label: const Text('Scan Note'),
-                    ),
-                  ),
-              ],
+                  );
+                },
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
+        );
+      }
 
   Widget _buildLessonCardTrailing(
     BuildContext context,

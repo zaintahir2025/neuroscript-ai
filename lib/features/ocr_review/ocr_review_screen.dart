@@ -75,13 +75,13 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
           (defaultTargetPlatform == TargetPlatform.android ||
               defaultTargetPlatform == TargetPlatform.iOS);
 
-      if (!isNativeMobile) {
+      if (!isNativeMobile && !kIsWeb) {
         if (!mounted) return;
         setState(() {
           _isLoading = false;
           _statusMessage = '';
           _processingError =
-              'On Web and Desktop browsers, on-device ML Kit camera recognition is not available. '
+              'On Desktop platforms, camera text recognition is not available. '
               'You can paste notes or questions directly, load demo exam notes, or add lines manually.';
         });
         return;
@@ -105,10 +105,11 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         }
       }
 
-      // 2. Transcribe with dual-pass ML Kit on-device recognition
+      // 2. Transcribe lines
       setState(
-        () => _statusMessage =
-            'Stage 2: Transcribing handwritten lines (ML Kit)...',
+        () => _statusMessage = kIsWeb
+            ? 'Stage 2: Transcribing note lines in browser (WASM)...'
+            : 'Stage 2: Transcribing handwritten lines (ML Kit)...',
       );
       const ocrService = OcrService();
       final ocrResult = await ocrService.processPages(
@@ -124,7 +125,9 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
 
       if (_lines.isEmpty) {
         setState(() {
-          _processingError = 'No text detected in the captured photo. Please ensure good lighting and contrast, or paste/add lines manually.';
+          _processingError = kIsWeb
+              ? 'No text detected in the uploaded image. Please ensure high clarity and contrast, or paste/add lines manually.'
+              : 'No text detected in the captured photo. Please ensure good lighting and contrast, or paste/add lines manually.';
         });
       }
     } on Object catch (e) {
@@ -591,36 +594,25 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1080),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  const Text('Review OCR Lines'),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.paste),
-                    tooltip: 'Paste Notes or Questions',
-                    onPressed: () => _pasteNoteDialog(),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.school_outlined),
-                    tooltip: 'Load Demo Exam Note',
-                    onPressed: () => _loadSampleExamLines(),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Add Line',
-                    onPressed: () => _addNewLine(),
-                  ),
-                ],
-              ),
-            ),
+        title: const Text('Review OCR Lines'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.paste),
+            tooltip: 'Paste Notes or Questions',
+            onPressed: () => _pasteNoteDialog(),
           ),
-        ),
+          IconButton(
+            icon: const Icon(Icons.school_outlined),
+            tooltip: 'Load Demo Exam Note',
+            onPressed: () => _loadSampleExamLines(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Line',
+            onPressed: () => _addNewLine(),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Center(

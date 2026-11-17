@@ -405,53 +405,42 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        titleSpacing: 0,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 960),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  const Text('Scan Handwritten Note'),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.photo_library),
-                    tooltip: 'Choose from Gallery',
-                    onPressed: _capturedPages.length < 5
-                        ? _pickImagesFromGallery
-                        : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit_note),
-                    tooltip: 'Type or Paste Note Text',
-                    onPressed: _showPasteNoteDialog,
-                  ),
-                  if (_selectedMode == CaptureSourceMode.camera)
-                    IconButton(
-                      icon: Icon(
-                        _flashMode == FlashMode.torch
-                            ? Icons.flash_on
-                            : _flashMode == FlashMode.auto
-                            ? Icons.flash_auto
-                            : Icons.flash_off,
-                        color: _flashMode != FlashMode.off
-                            ? Colors.amber
-                            : Colors.white,
-                      ),
-                      tooltip: 'Toggle Flash',
-                      onPressed: _toggleFlash,
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.help_outline),
-                    tooltip: 'Framing Tips',
-                    onPressed: () => _showFramingTips(context),
-                  ),
-                ],
-              ),
-            ),
+        title: const Text('Scan Handwritten Note'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.photo_library),
+            tooltip: 'Choose from Gallery',
+            onPressed: _capturedPages.length < 5
+                ? _pickImagesFromGallery
+                : null,
           ),
-        ),
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            tooltip: 'Type or Paste Note Text',
+            onPressed: _showPasteNoteDialog,
+          ),
+          if (_selectedMode == CaptureSourceMode.camera)
+            IconButton(
+              icon: Icon(
+                _flashMode == FlashMode.torch
+                    ? Icons.flash_on
+                    : _flashMode == FlashMode.auto
+                    ? Icons.flash_auto
+                    : Icons.flash_off,
+                color: _flashMode != FlashMode.off
+                    ? Colors.amber
+                    : Colors.white,
+              ),
+              tooltip: 'Toggle Flash',
+              onPressed: _toggleFlash,
+            ),
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Framing Tips',
+            onPressed: () => _showFramingTips(context),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Center(
