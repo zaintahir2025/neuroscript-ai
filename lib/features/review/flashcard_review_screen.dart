@@ -130,22 +130,38 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.lessonTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Where is this from?',
-            onPressed: () {
-              WhereIsThisFromSheet.show(
-                context,
-                title: current.card.question,
-                sourceLines: current.card.sourceLines,
-                rawNoteLines: current.rawNoteLines,
-                groundingScore: current.card.groundingScore,
-              );
-            },
+        titleSpacing: 0,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.lessonTitle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    tooltip: 'Where is this from?',
+                    onPressed: () {
+                      WhereIsThisFromSheet.show(
+                        context,
+                        title: current.card.question,
+                        sourceLines: current.card.sourceLines,
+                        rawNoteLines: current.rawNoteLines,
+                        groundingScore: current.card.groundingScore,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
+        ),
       ),
       body: SafeArea(
         child: Center(

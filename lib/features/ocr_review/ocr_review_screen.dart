@@ -591,248 +591,285 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review OCR Lines'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.paste),
-            tooltip: 'Paste Notes or Questions',
-            onPressed: () => _pasteNoteDialog(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.school_outlined),
-            tooltip: 'Load Demo Exam Note',
-            onPressed: () => _loadSampleExamLines(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Add Line',
-            onPressed: () => _addNewLine(),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header Info Banner
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        titleSpacing: 0,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Icon(Icons.edit_note, color: colorScheme.primary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_lines.length} Numbered Lines Transcribed',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Verify accuracy, edit typos, merge split lines, or reorder before compiling.',
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
+                  const Text('Review OCR Lines'),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.paste),
+                    tooltip: 'Paste Notes or Questions',
+                    onPressed: () => _pasteNoteDialog(),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.school_outlined),
+                    tooltip: 'Load Demo Exam Note',
+                    onPressed: () => _loadSampleExamLines(),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Add Line',
+                    onPressed: () => _addNewLine(),
                   ),
                 ],
               ),
             ),
-
-            // Numbered Lines Reorderable List
-            Expanded(
-              child: _lines.isEmpty
-                  ? Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: Column(
+              children: [
+                // Header Info Banner
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_note, color: colorScheme.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.document_scanner_outlined,
-                              size: 64,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(height: 16),
                             Text(
-                              'No Text Lines Transcribed Yet',
-                              style: theme.textTheme.titleMedium?.copyWith(
+                              '${_lines.length} Numbered Lines Transcribed',
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 520),
-                              child: Text(
-                                _processingError ?? 'On-device scanner did not detect text. You can paste notes directly, load demo exam notes, or add lines manually.',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 10,
-                              alignment: WrapAlignment.center,
-                              children: [
-                                FilledButton.icon(
-                                  onPressed: () => _pasteNoteDialog(),
-                                  icon: const Icon(Icons.paste),
-                                  label: const Text('Paste Notes / Questions'),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () => _loadSampleExamLines(),
-                                  icon: const Icon(Icons.school_outlined),
-                                  label: const Text('Load Demo Exam Note'),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () => _addNewLine(),
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Add Line Manually'),
-                                ),
-                              ],
+                            const SizedBox(height: 2),
+                            Text(
+                              'Verify accuracy, edit typos, merge split lines, or reorder before compiling.',
+                              style: theme.textTheme.bodySmall,
                             ),
                           ],
                         ),
                       ),
-                    )
-                  : ReorderableListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      itemCount: _lines.length,
-                      onReorderItem: (oldIndex, newIndex) {
-                        setState(() {
-                          final item = _lines.removeAt(oldIndex);
-                          _lines.insert(newIndex, item);
-                          _renumberLines();
-                        });
-                      },
-                      itemBuilder: (context, index) {
-                        final line = _lines[index];
-                        return Card(
-                          key: ValueKey('line_${line.lineNumber}_$index'),
-                          margin: const EdgeInsets.only(bottom: 8),
-                          elevation: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    ],
+                  ),
+                ),
+
+                // Numbered Lines Reorderable List
+                Expanded(
+                  child: _lines.isEmpty
+                      ? Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // Line Number Badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                Icon(
+                                  Icons.document_scanner_outlined,
+                                  size: 64,
+                                  color: colorScheme.primary,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No Text Lines Transcribed Yet',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(
-                                      alpha: 0.12,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
+                                ),
+                                const SizedBox(height: 8),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 520,
                                   ),
                                   child: Text(
-                                    'L${line.lineNumber}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.primary,
+                                    _processingError ?? 'On-device scanner did not detect text. You can paste notes directly, load demo exam notes, or add lines manually.',
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-
-                                // Text Content
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _editLine(index),
-                                    child: Semantics(
-                                      button: true,
-                                      label:
-                                          'Edit line ${line.lineNumber}: ${line.text}',
-                                      child: ExcludeSemantics(
-                                        child: Text(
-                                          line.text,
-                                          style: theme.textTheme.bodyLarge
-                                              ?.copyWith(
-                                                height: 1.5,
-                                                color: colorScheme.onSurface,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                // Actions (Edit, Merge, Delete)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                const SizedBox(height: 20),
+                                Wrap(
+                                  spacing: 12,
+                                  runSpacing: 10,
+                                  alignment: WrapAlignment.center,
                                   children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, size: 18),
-                                      tooltip: 'Edit line ${line.lineNumber}',
-                                      onPressed: () => _editLine(index),
+                                    FilledButton.icon(
+                                      onPressed: () => _pasteNoteDialog(),
+                                      icon: const Icon(Icons.paste),
+                                      label: const Text(
+                                        'Paste Notes / Questions',
+                                      ),
                                     ),
-                                    if (index < _lines.length - 1)
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.merge_type,
-                                          size: 18,
-                                        ),
-                                        tooltip: 'Merge with next line',
-                                        onPressed: () => _mergeWithNext(index),
-                                      ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.delete_outline,
-                                        size: 18,
-                                        color: colorScheme.error,
-                                      ),
-                                      tooltip: 'Delete line',
-                                      onPressed: () => _deleteLine(index),
+                                    OutlinedButton.icon(
+                                      onPressed: () => _loadSampleExamLines(),
+                                      icon: const Icon(Icons.school_outlined),
+                                      label: const Text('Load Demo Exam Note'),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () => _addNewLine(),
+                                      icon: const Icon(Icons.add),
+                                      label: const Text('Add Line Manually'),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-            ),
+                        )
+                      : ReorderableListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          itemCount: _lines.length,
+                          onReorderItem: (oldIndex, newIndex) {
+                            setState(() {
+                              final item = _lines.removeAt(oldIndex);
+                              _lines.insert(newIndex, item);
+                              _renumberLines();
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            final line = _lines[index];
+                            return Card(
+                              key: ValueKey('line_${line.lineNumber}_$index'),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              elevation: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Line Number Badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'L${line.lineNumber}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
 
-            // Bottom Confirmation Bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
+                                    // Text Content
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () => _editLine(index),
+                                        child: Semantics(
+                                          button: true,
+                                          label:
+                                              'Edit line ${line.lineNumber}: ${line.text}',
+                                          child: ExcludeSemantics(
+                                            child: Text(
+                                              line.text,
+                                              style: theme.textTheme.bodyLarge
+                                                  ?.copyWith(
+                                                    height: 1.5,
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Actions (Edit, Merge, Delete)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            size: 18,
+                                          ),
+                                          tooltip:
+                                              'Edit line ${line.lineNumber}',
+                                          onPressed: () => _editLine(index),
+                                        ),
+                                        if (index < _lines.length - 1)
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.merge_type,
+                                              size: 18,
+                                            ),
+                                            tooltip: 'Merge with next line',
+                                            onPressed: () =>
+                                                _mergeWithNext(index),
+                                          ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.delete_outline,
+                                            size: 18,
+                                            color: colorScheme.error,
+                                          ),
+                                          tooltip: 'Delete line',
+                                          onPressed: () => _deleteLine(index),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+
+                // Bottom Confirmation Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
                   ),
-                ],
-              ),
-              child: AppButton(
-                label: _isGenerating
-                    ? 'Synthesizing Lesson & Flashcards...'
-                    : 'Confirm & Generate Lesson (${_lines.length} lines)',
-                isLoading: _isGenerating,
-                onPressed: _lines.isNotEmpty && !_isGenerating
-                    ? _confirmAndGenerate
-                    : null,
-              ),
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: AppButton(
+                    label: _isGenerating
+                        ? 'Synthesizing Lesson & Flashcards...'
+                        : 'Confirm & Generate Lesson (${_lines.length} lines)',
+                    isLoading: _isGenerating,
+                    onPressed: _lines.isNotEmpty && !_isGenerating
+                        ? _confirmAndGenerate
+                        : null,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

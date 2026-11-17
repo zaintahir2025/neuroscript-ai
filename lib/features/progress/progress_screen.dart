@@ -32,7 +32,21 @@ class ProgressScreen extends ConsumerWidget {
     final lessonsAsync = ref.watch(allLessonsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Learning Progress')),
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 880),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Learning Progress'),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

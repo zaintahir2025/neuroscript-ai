@@ -95,27 +95,40 @@ class LessonOverviewScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lesson.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit Flashcards',
-            onPressed: () async {
-              final updated = await context.push<bool>(
-                '/lesson/$lessonId/edit',
-              );
-              if (updated == true && context.mounted) {
-                ref.invalidate(allLessonsProvider);
-                context.go('/lesson/$lessonId');
-              }
-            },
+        titleSpacing: 0,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 880),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(lesson.title, overflow: TextOverflow.ellipsis),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit Flashcards',
+                    onPressed: () async {
+                      final updated = await context.push<bool>(
+                        '/lesson/$lessonId/edit',
+                      );
+                      if (updated == true && context.mounted) {
+                        ref.invalidate(allLessonsProvider);
+                        context.go('/lesson/$lessonId');
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete Flashcards',
+                    onPressed: () => _confirmDeleteLesson(context, ref),
+                  ),
+                ],
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete Flashcards',
-            onPressed: () => _confirmDeleteLesson(context, ref),
-          ),
-        ],
+        ),
       ),
       body: SafeArea(
         child: Center(

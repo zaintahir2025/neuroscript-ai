@@ -175,21 +175,32 @@ class _EditLessonScreenState extends ConsumerState<EditLessonScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Flashcard Set'),
-        actions: [
-          TextButton.icon(
-            onPressed: _isSaving ? null : _saveChanges,
-            icon: _isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check),
-            label: const Text('Save'),
+        titleSpacing: 0,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 880),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  const Text('Edit Flashcard Set'),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: _isSaving ? null : _saveChanges,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.check),
+                    label: const Text('Save'),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(width: 8),
-        ],
+        ),
       ),
       body: SafeArea(
         child: Center(

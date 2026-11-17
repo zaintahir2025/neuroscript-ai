@@ -405,141 +405,364 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: const Text('Scan Handwritten Note'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.photo_library),
-            tooltip: 'Choose from Gallery',
-            onPressed: _capturedPages.length < 5
-                ? _pickImagesFromGallery
-                : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_note),
-            tooltip: 'Type or Paste Note Text',
-            onPressed: _showPasteNoteDialog,
-          ),
-          if (_selectedMode == CaptureSourceMode.camera)
-            IconButton(
-              icon: Icon(
-                _flashMode == FlashMode.torch
-                    ? Icons.flash_on
-                    : _flashMode == FlashMode.auto
-                    ? Icons.flash_auto
-                    : Icons.flash_off,
-                color: _flashMode != FlashMode.off
-                    ? Colors.amber
-                    : Colors.white,
+        titleSpacing: 0,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Text('Scan Handwritten Note'),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.photo_library),
+                    tooltip: 'Choose from Gallery',
+                    onPressed: _capturedPages.length < 5
+                        ? _pickImagesFromGallery
+                        : null,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_note),
+                    tooltip: 'Type or Paste Note Text',
+                    onPressed: _showPasteNoteDialog,
+                  ),
+                  if (_selectedMode == CaptureSourceMode.camera)
+                    IconButton(
+                      icon: Icon(
+                        _flashMode == FlashMode.torch
+                            ? Icons.flash_on
+                            : _flashMode == FlashMode.auto
+                            ? Icons.flash_auto
+                            : Icons.flash_off,
+                        color: _flashMode != FlashMode.off
+                            ? Colors.amber
+                            : Colors.white,
+                      ),
+                      tooltip: 'Toggle Flash',
+                      onPressed: _toggleFlash,
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    tooltip: 'Framing Tips',
+                    onPressed: () => _showFramingTips(context),
+                  ),
+                ],
               ),
-              tooltip: 'Toggle Flash',
-              onPressed: _toggleFlash,
             ),
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Framing Tips',
-            onPressed: () => _showFramingTips(context),
           ),
-        ],
+        ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Mode Selector: Camera Scan vs. Gallery Import
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: const Color(0xFF16161A),
-              child: Center(
-                child: SegmentedButton<CaptureSourceMode>(
-                  style: SegmentedButton.styleFrom(
-                    backgroundColor: const Color(0xFF222228),
-                    selectedBackgroundColor: colorScheme.primary,
-                    selectedForegroundColor: Colors.white,
-                    foregroundColor: Colors.white70,
-                    side: const BorderSide(color: Colors.white24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Column(
+              children: [
+                // Mode Selector: Camera Scan vs. Gallery Import
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  segments: const [
-                    ButtonSegment(
-                      value: CaptureSourceMode.camera,
-                      icon: Icon(Icons.camera_alt, size: 18),
-                      label: Text('Camera Scan'),
-                    ),
-                    ButtonSegment(
-                      value: CaptureSourceMode.gallery,
-                      icon: Icon(Icons.photo_library, size: 18),
-                      label: Text('Gallery Import'),
-                    ),
-                  ],
-                  selected: {_selectedMode},
-                  onSelectionChanged: (set) {
-                    setState(() => _selectedMode = set.first);
-                  },
-                ),
-              ),
-            ),
-
-            // Mode 1: Camera Scan
-            if (_selectedMode == CaptureSourceMode.camera) ...[
-              // Lighting guidance
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                color: const Color(0xFF212121),
-                child: const Row(
-                  children: [
-                    Icon(Icons.light_mode, size: 18, color: Colors.white70),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Use even lighting and avoid shadows across the page.',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
+                  color: const Color(0xFF16161A),
+                  child: Center(
+                    child: SegmentedButton<CaptureSourceMode>(
+                      style: SegmentedButton.styleFrom(
+                        backgroundColor: const Color(0xFF222228),
+                        selectedBackgroundColor: colorScheme.primary,
+                        selectedForegroundColor: Colors.white,
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
                       ),
+                      segments: const [
+                        ButtonSegment(
+                          value: CaptureSourceMode.camera,
+                          icon: Icon(Icons.camera_alt, size: 18),
+                          label: Text('Camera Scan'),
+                        ),
+                        ButtonSegment(
+                          value: CaptureSourceMode.gallery,
+                          icon: Icon(Icons.photo_library, size: 18),
+                          label: Text('Gallery Import'),
+                        ),
+                      ],
+                      selected: {_selectedMode},
+                      onSelectionChanged: (set) {
+                        setState(() => _selectedMode = set.first);
+                      },
                     ),
-                  ],
+                  ),
                 ),
-              ),
 
-              // Camera Viewfinder & Framing Guide
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (_cameraController != null && _isCameraInitialized)
-                      Center(child: CameraPreview(_cameraController!))
-                    else
-                      Container(
-                        color: const Color(0xFF1E1E24),
-                        child: Center(
+                // Mode 1: Camera Scan
+                if (_selectedMode == CaptureSourceMode.camera) ...[
+                  // Lighting guidance
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: const Color(0xFF212121),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.light_mode, size: 18, color: Colors.white70),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Use even lighting and avoid shadows across the page.',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Camera Viewfinder & Framing Guide
+                  Expanded(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (_cameraController != null && _isCameraInitialized)
+                          Center(child: CameraPreview(_cameraController!))
+                        else
+                          Container(
+                            color: const Color(0xFF1E1E24),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.document_scanner,
+                                    size: 72,
+                                    color: Colors.white54,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Document Framing Viewfinder',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Align note page inside the borders below',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    alignment: WrapAlignment.center,
+                                    children: [
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          side: const BorderSide(
+                                            color: Colors.white38,
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.photo_library,
+                                          size: 16,
+                                        ),
+                                        label: const Text(
+                                          'Choose from Gallery',
+                                        ),
+                                        onPressed: _pickImagesFromGallery,
+                                      ),
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          side: const BorderSide(
+                                            color: Colors.white38,
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.science,
+                                          size: 16,
+                                        ),
+                                        label: const Text('Demo: Biology Scan'),
+                                        onPressed: () =>
+                                            _loadSampleNote('note_001'),
+                                      ),
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          side: const BorderSide(
+                                            color: Colors.white38,
+                                          ),
+                                        ),
+                                        icon: const Icon(Icons.code, size: 16),
+                                        label: const Text('Demo: CS Scan'),
+                                        onPressed: () =>
+                                            _loadSampleNote('note_002'),
+                                      ),
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          side: const BorderSide(
+                                            color: Colors.white38,
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.edit_note,
+                                          size: 16,
+                                        ),
+                                        label: const Text('Type / Paste Notes'),
+                                        onPressed: _showPasteNoteDialog,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        // Framing Guide Corners (Document Bounding Box Overlay)
+                        IgnorePointer(
+                          child: Center(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 32,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                  width: 2.5,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
+                                  margin: const EdgeInsets.only(top: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.6),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'Align page flat within borders',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        if (_isProcessingCapture)
+                          Container(
+                            color: Colors.black54,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  // Mode 2: Gallery Import Workspace
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xFF141418),
+                      child: Center(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 20,
+                          ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
-                                Icons.document_scanner,
-                                size: 72,
-                                color: Colors.white54,
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Document Framing Viewfinder',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1E26),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.35,
+                                    ),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.photo_library_outlined,
+                                      size: 64,
+                                      color: colorScheme.primary,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Import Note or Question Paper',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Select up to 5 clear photo captures from your gallery or document files.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    FilledButton.icon(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: colorScheme.primary,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 14,
+                                        ),
+                                      ),
+                                      icon: const Icon(Icons.photo_library),
+                                      label: const Text('Choose from Gallery'),
+                                      onPressed: _capturedPages.length < 5
+                                          ? _pickImagesFromGallery
+                                          : null,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Align note page inside the borders below',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
+                                spacing: 10,
+                                runSpacing: 10,
                                 alignment: WrapAlignment.center,
                                 children: [
                                   OutlinedButton.icon(
@@ -550,11 +773,16 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                                       ),
                                     ),
                                     icon: const Icon(
-                                      Icons.photo_library,
+                                      Icons.camera_alt,
                                       size: 16,
                                     ),
-                                    label: const Text('Choose from Gallery'),
-                                    onPressed: _pickImagesFromGallery,
+                                    label: const Text('+ Scan with Camera'),
+                                    onPressed: () {
+                                      setState(
+                                        () => _selectedMode =
+                                            CaptureSourceMode.camera,
+                                      );
+                                    },
                                   ),
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
@@ -597,407 +825,243 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                           ),
                         ),
                       ),
-
-                    // Framing Guide Corners (Document Bounding Box Overlay)
-                    IgnorePointer(
-                      child: Center(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 32,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: colorScheme.primary.withValues(alpha: 0.8),
-                              width: 2.5,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              margin: const EdgeInsets.only(top: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                'Align page flat within borders',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                     ),
+                  ),
+                ],
 
-                    if (_isProcessingCapture)
-                      Container(
-                        color: Colors.black54,
-                        child: const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
+                // Captured Pages Strip (Burst 1-5 pages)
+                Container(
+                  height: 90,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  color: const Color(0xFF121214),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Pages\n(${_capturedPages.length}/5)',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              // Mode 2: Gallery Import Workspace
-              Expanded(
-                child: Container(
-                  color: const Color(0xFF141418),
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 20,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E26),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.35,
-                                ),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.3),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.photo_library_outlined,
-                                  size: 64,
-                                  color: colorScheme.primary,
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Import Note or Question Paper',
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: _capturedPages.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Capture 1 to 5 pages of handwritten notes',
                                   style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Select up to 5 clear photo captures from your gallery or document files.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.white70,
+                                    color: Colors.white38,
                                     fontSize: 13,
-                                    height: 1.4,
                                   ),
                                 ),
-                                const SizedBox(height: 20),
-                                FilledButton.icon(
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: colorScheme.primary,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 14,
-                                    ),
-                                  ),
-                                  icon: const Icon(Icons.photo_library),
-                                  label: const Text('Choose from Gallery'),
-                                  onPressed: _capturedPages.length < 5
-                                      ? _pickImagesFromGallery
-                                      : null,
-                                ),
-                              ],
+                              )
+                            : ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _capturedPages.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(width: 10),
+                                itemBuilder: (context, index) {
+                                  return Stack(
+                                    children: [
+                                      Container(
+                                        width: 60,
+                                        height: 74,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade800,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white38,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(
+                                                Icons.description,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'P. ${index + 1}',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 0,
+                                        right: 0,
+                                        child: IconButton(
+                                          tooltip: 'Remove page ${index + 1}',
+                                          icon: const Icon(Icons.close),
+                                          color: Colors.white,
+                                          style: IconButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.red.shade700,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _capturedPages.removeAt(index);
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Shutter & Controls
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  color: Colors.black,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Back button
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        tooltip: 'Back to Library',
+                        onPressed: () => context.pop(),
+                      ),
+
+                      // Option 2: Gallery Button
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton.filledTonal(
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  _selectedMode == CaptureSourceMode.gallery
+                                  ? colorScheme.primary
+                                  : Colors.white12,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(48, 48),
+                            ),
+                            icon: const Icon(Icons.photo_library, size: 24),
+                            tooltip: 'Choose from Gallery',
+                            onPressed: () {
+                              if (_selectedMode != CaptureSourceMode.gallery) {
+                                setState(
+                                  () =>
+                                      _selectedMode = CaptureSourceMode.gallery,
+                                );
+                              }
+                              if (_capturedPages.length < 5) {
+                                _pickImagesFromGallery();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Gallery',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: const BorderSide(color: Colors.white38),
-                                ),
-                                icon: const Icon(Icons.camera_alt, size: 16),
-                                label: const Text('+ Scan with Camera'),
-                                onPressed: () {
+                        ],
+                      ),
+
+                      // Option 1: Shutter Button (Camera)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Semantics(
+                            button: true,
+                            label: 'Capture note photo',
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_selectedMode != CaptureSourceMode.camera) {
                                   setState(
                                     () => _selectedMode =
                                         CaptureSourceMode.camera,
                                   );
-                                },
-                              ),
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: const BorderSide(color: Colors.white38),
+                                } else if (_capturedPages.length < 5) {
+                                  _capturePhoto();
+                                }
+                              },
+                              child: Container(
+                                width: 68,
+                                height: 68,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3.5,
+                                  ),
+                                  color: _capturedPages.length < 5
+                                      ? colorScheme.primary
+                                      : Colors.grey,
                                 ),
-                                icon: const Icon(Icons.science, size: 16),
-                                label: const Text('Demo: Biology Scan'),
-                                onPressed: () => _loadSampleNote('note_001'),
-                              ),
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: const BorderSide(color: Colors.white38),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 30,
                                 ),
-                                icon: const Icon(Icons.code, size: 16),
-                                label: const Text('Demo: CS Scan'),
-                                onPressed: () => _loadSampleNote('note_002'),
                               ),
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: const BorderSide(color: Colors.white38),
-                                ),
-                                icon: const Icon(Icons.edit_note, size: 16),
-                                label: const Text('Type / Paste Notes'),
-                                onPressed: _showPasteNoteDialog,
-                              ),
-                            ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Camera',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
-                    ),
+
+                      // Proceed to Review Button
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _capturedPages.isNotEmpty
+                              ? (profile == ProfileType.adhd
+                                    ? AppPalettes.adhdSecondary
+                                    : colorScheme.primary)
+                              : Colors.grey.shade800,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                        ),
+                        onPressed: _capturedPages.isNotEmpty
+                            ? _proceedToReview
+                            : null,
+                        icon: const Icon(Icons.check, size: 18),
+                        label: const Text('Review OCR'),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-
-            // Captured Pages Strip (Burst 1-5 pages)
-            Container(
-              height: 90,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: const Color(0xFF121214),
-              child: Row(
-                children: [
-                  Text(
-                    'Pages\n(${_capturedPages.length}/5)',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _capturedPages.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Capture 1 to 5 pages of handwritten notes',
-                              style: TextStyle(
-                                color: Colors.white38,
-                                fontSize: 13,
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _capturedPages.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 10),
-                            itemBuilder: (context, index) {
-                              return Stack(
-                                children: [
-                                  Container(
-                                    width: 60,
-                                    height: 74,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade800,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: Colors.white38,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.description,
-                                            color: Colors.white,
-                                            size: 24,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            'P. ${index + 1}',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    child: IconButton(
-                                      tooltip: 'Remove page ${index + 1}',
-                                      icon: const Icon(Icons.close),
-                                      color: Colors.white,
-                                      style: IconButton.styleFrom(
-                                        backgroundColor: Colors.red.shade700,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _capturedPages.removeAt(index);
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
+              ],
             ),
-
-            // Shutter & Controls
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              color: Colors.black,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Back button
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    tooltip: 'Back to Library',
-                    onPressed: () => context.pop(),
-                  ),
-
-                  // Option 2: Gallery Button
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton.filledTonal(
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              _selectedMode == CaptureSourceMode.gallery
-                              ? colorScheme.primary
-                              : Colors.white12,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(48, 48),
-                        ),
-                        icon: const Icon(Icons.photo_library, size: 24),
-                        tooltip: 'Choose from Gallery',
-                        onPressed: () {
-                          if (_selectedMode != CaptureSourceMode.gallery) {
-                            setState(
-                              () => _selectedMode = CaptureSourceMode.gallery,
-                            );
-                          }
-                          if (_capturedPages.length < 5) {
-                            _pickImagesFromGallery();
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Gallery',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
-                      ),
-                    ],
-                  ),
-
-                  // Option 1: Shutter Button (Camera)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Semantics(
-                        button: true,
-                        label: 'Capture note photo',
-                        child: GestureDetector(
-                          onTap: () {
-                            if (_selectedMode != CaptureSourceMode.camera) {
-                              setState(
-                                () => _selectedMode = CaptureSourceMode.camera,
-                              );
-                            } else if (_capturedPages.length < 5) {
-                              _capturePhoto();
-                            }
-                          },
-                          child: Container(
-                            width: 68,
-                            height: 68,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 3.5,
-                              ),
-                              color: _capturedPages.length < 5
-                                  ? colorScheme.primary
-                                  : Colors.grey,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Camera',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
-                      ),
-                    ],
-                  ),
-
-                  // Proceed to Review Button
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _capturedPages.isNotEmpty
-                          ? (profile == ProfileType.adhd
-                                ? AppPalettes.adhdSecondary
-                                : colorScheme.primary)
-                          : Colors.grey.shade800,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: _capturedPages.isNotEmpty
-                        ? _proceedToReview
-                        : null,
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Review OCR'),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
