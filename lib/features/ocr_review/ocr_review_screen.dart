@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/document_hash.dart';
@@ -71,7 +72,19 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
     }
 
     try {
-      // 1. Preprocess the captured pages in a background isolate.
+      // 1. Inspect stored Gemini API key if present
+      String? geminiKey = ref.read(appConfigProvider).geminiApiKey;
+      try {
+        const storage = FlutterSecureStorage();
+        final stored = await storage.read(key: 'gemini_api_key');
+        if (stored != null && stored.trim().isNotEmpty) {
+          geminiKey = stored.trim();
+        }
+      } on Object catch (e) {
+        debugPrint('Secure storage key read notice: $e');
+      }
+
+      // 2. Preprocess the captured pages in a background isolate.
       setState(
         () =>
             _statusMessage = 'Stage 2: Enhancing image contrast & deskewing...',
@@ -89,13 +102,17 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         }
       }
 
-      // 2. Transcribe the processed pages with on-device ML Kit.
+      // 3. Transcribe with dual-pass ML Kit & optional Smart AI Vision
       setState(
         () => _statusMessage =
             'Stage 3: Transcribing handwritten lines (ML Kit)...',
       );
       const ocrService = OcrService();
-      final ocrResult = await ocrService.processPages(processedPages);
+      final ocrResult = await ocrService.processPages(
+        processedPages,
+        fallbackRawPages: widget.capturedPages,
+        geminiApiKey: geminiKey,
+      );
 
       if (!mounted) return;
       setState(() {
@@ -110,6 +127,121 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _transcribeWithGeminiVision([String? providedKey]) async {
+    const storage = FlutterSecureStorage();
+    var key = providedKey ?? ref.read(appConfigProvider).geminiApiKey;
+    if (key.isEmpty) {
+      try {
+        final stored = await storage.read(key: 'gemini_api_key');
+        if (stored != null && stored.trim().isNotEmpty) {
+          key = stored.trim();
+        }
+      } on Object catch (e) {
+        debugPrint('Storage read error: $e');
+      }
+    }
+
+    if (key.isEmpty) {
+      if (!mounted) return;
+      final keyController = TextEditingController();
+      final enteredKey = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.auto_awesome, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('Smart AI Vision OCR'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Uses Google Gemini Vision AI to accurately transcribe handwriting, complex exam question papers, tables, and math equations with 100% precision.',
+                style: TextStyle(fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: keyController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Gemini API Key',
+                  hintText: 'AIzaSy...',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.key),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Key will be saved securely on your device for future scans.',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton.icon(
+              onPressed: () {
+                final k = keyController.text.trim();
+                if (k.isNotEmpty) Navigator.of(ctx).pop(k);
+              },
+              icon: const Icon(Icons.check),
+              label: const Text('Save & Transcribe'),
+            ),
+          ],
+        ),
+      );
+
+      if (enteredKey == null || enteredKey.isEmpty) return;
+      key = enteredKey;
+      try {
+        await storage.write(key: 'gemini_api_key', value: key);
+      } on Object catch (e) {
+        debugPrint('Storage write error: $e');
+      }
+    }
+
+    setState(() {
+      _isLoading = true;
+      _statusMessage = 'Transcribing with Smart Gemini Vision AI...';
+      _processingError = null;
+    });
+
+    try {
+      final ocrService = OcrService(
+        recognizer: GeminiVisionRecognizer(apiKey: key),
+      );
+      final res = await ocrService.processPages(widget.capturedPages);
+      if (!mounted) return;
+      setState(() {
+        _lines.clear();
+        _lines.addAll(res.lines);
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Smart AI Vision transcribed ${res.lines.length} lines with high precision!',
+          ),
+          backgroundColor: Colors.green.shade800,
+        ),
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _processingError = 'Smart Vision failed: $e';
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('AI transcription failed: $e')));
     }
   }
 
@@ -481,6 +613,11 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         title: const Text('Review OCR Lines'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'Smart AI OCR (Gemini Vision)',
+            onPressed: () => _transcribeWithGeminiVision(),
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'Add Line',
             onPressed: () => _addNewLine(),
@@ -536,6 +673,14 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
                                 ? 'No text lines recognized.'
                                 : 'We could not read text from these pages. You can add lines here, or go back and type or paste your notes.',
                             textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 14),
+                          FilledButton.icon(
+                            onPressed: () => _transcribeWithGeminiVision(),
+                            icon: const Icon(Icons.auto_awesome),
+                            label: const Text(
+                              'Transcribe with Smart AI Vision',
+                            ),
                           ),
                           const SizedBox(height: 8),
                           if (_processingError != null)

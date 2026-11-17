@@ -47,20 +47,34 @@ class OnboardingScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Center(
                           child: Container(
-                            width: 80,
-                            height: 80,
+                            width: 88,
+                            height: 88,
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(
-                                alpha: 0.12,
+                              color: colorScheme.surface,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.2,
+                                ),
+                                width: 1.5,
                               ),
-                              shape: BoxShape.circle,
                             ),
-                            child: ClipOval(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
                               child: Image.asset(
-                                'assets/branding/app_icon_128.png',
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
+                                'assets/branding/app_icon_512.png',
+                                width: 88,
+                                height: 88,
+                                fit: BoxFit.contain,
                                 errorBuilder: (_, _, _) => Icon(
                                   Icons.psychology,
                                   size: 48,

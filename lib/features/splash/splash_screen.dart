@@ -115,31 +115,44 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
                 // App Brand Icon
                 Container(
-                  width: 96,
-                  height: 96,
+                  width: 104,
+                  height: 104,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.16),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                     border: Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.25),
-                      width: 2,
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                      width: 1.5,
                     ),
                   ),
-                  child: ClipOval(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
                     child: Image.asset(
-                      'assets/branding/app_icon_128.png',
-                      width: 96,
-                      height: 96,
-                      fit: BoxFit.cover,
+                      'assets/branding/app_icon_512.png',
+                      width: 104,
+                      height: 104,
+                      fit: BoxFit.contain,
                       errorBuilder: (_, _, _) => Icon(
                         Icons.psychology_rounded,
-                        size: 54,
+                        size: 56,
                         color: colorScheme.primary,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // Title
                 Text(

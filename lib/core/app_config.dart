@@ -35,6 +35,7 @@ class AppConfig {
     this.demoMode = false,
     this.proxyBaseUrl = 'https://localhost:5001',
     this.apiKey = '',
+    this.geminiApiKey = '',
   });
 
   /// Controls the active lesson content source.
@@ -75,6 +76,9 @@ class AppConfig {
   /// API key for authenticated proxy endpoints (never committed; injected via build environment).
   final String apiKey;
 
+  /// Optional API key for Google Gemini Vision OCR transcription.
+  final String geminiApiKey;
+
   /// Factory pulling configuration from compile-time environment definitions.
   ///
   /// Example command line:
@@ -110,6 +114,10 @@ class AppConfig {
       defaultValue: 'https://localhost:5001',
     );
     const key = String.fromEnvironment('API_KEY', defaultValue: '');
+    const geminiKey = String.fromEnvironment(
+      'GEMINI_API_KEY',
+      defaultValue: '',
+    );
 
     return AppConfig(
       generatorMode: GeneratorMode.fromString(genModeStr),
@@ -121,6 +129,7 @@ class AppConfig {
       demoMode: demo,
       proxyBaseUrl: proxyUrl,
       apiKey: key,
+      geminiApiKey: geminiKey,
     );
   }
 
@@ -135,6 +144,7 @@ class AppConfig {
     bool? demoMode,
     String? proxyBaseUrl,
     String? apiKey,
+    String? geminiApiKey,
   }) {
     return AppConfig(
       generatorMode: generatorMode ?? this.generatorMode,
@@ -146,6 +156,7 @@ class AppConfig {
       demoMode: demoMode ?? this.demoMode,
       proxyBaseUrl: proxyBaseUrl ?? this.proxyBaseUrl,
       apiKey: apiKey ?? this.apiKey,
+      geminiApiKey: geminiApiKey ?? this.geminiApiKey,
     );
   }
 }

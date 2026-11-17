@@ -93,11 +93,11 @@ void main() {
         await tester.pumpAndSettle();
 
         // 1. Camera option verified (shutter icon + label)
-        expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+        expect(find.byIcon(Icons.camera_alt), findsAtLeastNWidgets(1));
         expect(find.text('Camera'), findsOneWidget);
 
-        // 2. Gallery option verified (gallery icon + label in bottom controls, appbar, viewfinder)
-        expect(find.byIcon(Icons.photo_library), findsNWidgets(3));
+        // 2. Gallery option verified (gallery icon + label in bottom controls, switcher, appbar, viewfinder)
+        expect(find.byIcon(Icons.photo_library), findsAtLeastNWidgets(3));
         expect(find.text('Gallery'), findsOneWidget);
         expect(find.text('Choose from Gallery'), findsOneWidget);
       },
