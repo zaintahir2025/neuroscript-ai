@@ -125,10 +125,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                       width: 2,
                     ),
                   ),
-                  child: Icon(
-                    Icons.psychology_rounded,
-                    size: 54,
-                    color: colorScheme.primary,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/branding/app_icon_128.png',
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Icon(
+                        Icons.psychology_rounded,
+                        size: 54,
+                        color: colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

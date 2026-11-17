@@ -270,7 +270,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byIcon(Icons.psychology_rounded), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 50));
     await db.close();

@@ -55,10 +55,18 @@ class OnboardingScreen extends StatelessWidget {
                               ),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
-                              Icons.psychology,
-                              size: 48,
-                              color: colorScheme.primary,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/branding/app_icon_128.png',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => Icon(
+                                  Icons.psychology,
+                                  size: 48,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
                             ),
                           ),
                         ),
