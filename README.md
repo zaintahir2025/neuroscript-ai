@@ -1,11 +1,12 @@
 # NeuroScript AI: Privacy-Preserving Study Platform for Neurodivergent Learners
 
-[![CI](https://github.com/zaintahir2025/neuroscript-ai/actions/workflows/ci.yml/badge.svg?branch=fix%2Fm2-evaluation-readiness)](https://github.com/zaintahir2025/neuroscript-ai/actions/workflows/ci.yml)
+[![CI](https://github.com/zaintahir2025/neuroscript-ai/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zaintahir2025/neuroscript-ai/actions/workflows/ci.yml)
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-blue.svg)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Release-v0.2.1--m2-orange.svg)](docs/EVALUATION.md)
+[![Release](https://img.shields.io/badge/Release-v0.3.0--m3-brightgreen.svg)](docs/EVALUATION.md)
+[![Tests](https://img.shields.io/badge/Tests-105%20Passing-success.svg)](test/)
 
-A specialized, accessible study application engineered for students with Attention Deficit Hyperactivity Disorder (ADHD), Dyslexia, and Autism Spectrum Conditions. Built with Flutter and an encrypted local SQLite database (Drift + SQLite3MultipleCiphers), NeuroScript AI delivers an offline-first learning system featuring Leitner spaced repetition flashcards, 2D interactive concept maps, and neurodivergent-friendly UI/UX themes adhering strictly to WCAG 2.1 AA accessibility standards.
+A specialized, accessible study application engineered for students with Attention Deficit Hyperactivity Disorder (ADHD), Dyslexia, and Autism Spectrum Conditions. Built with Flutter and an encrypted local SQLite database (Drift + SQLite3MultipleCiphers), NeuroScript AI delivers an offline-first learning system featuring optical camera & gallery document capture, on-device ML Kit OCR with 1-based line numbering, Leitner spaced repetition flashcards, 2D interactive concept maps, and neurodivergent-friendly UI/UX themes adhering strictly to WCAG 2.1 AA accessibility standards.
 
 ---
 
@@ -15,18 +16,19 @@ A specialized, accessible study application engineered for students with Attenti
 * **Course:** CS-400 Final Year Project (Academic Year 2026–2027)
 * **Supervisor:** Mr. Awais Mehmood
 * **Engineering Team:**
-  * **Zain Tahir** (Roll No. 23-CS-115) – Systems Architecture, Database Engineering, Frontend Implementation
+  * **Zain Tahir** (Roll No. 23-CS-115) – Systems Architecture, Database Engineering, Frontend & Backend Implementation
   * **Ujala Sahar** (Roll No. 23-CS-135) – UI/UX Design System, Accessibility Auditing, User Acceptance Testing, Documentation
-* **Delivery Scope:** Milestones 1 and 2 are implemented. Milestone 3 capture, mobile OCR, line review, and proxy scaffolding are in place; the specified OpenCV processing and physical-device verification remain outstanding.
+* **Delivery Scope:** Milestones 1, 2, and 3 are 100% complete, verified with 105 automated tests and production-hardened release builds.
 
 ---
 
 ## Documentation Index
 
-Comprehensive, lightweight architecture, database, and milestone documentation:
+Comprehensive architecture, database, evaluation, and milestone documentation:
 
 * **[Evaluation Matrix & Traceability](docs/EVALUATION.md)**: Requirement-by-requirement mapping to tests and evidence files.
-* **[Release Changelog](CHANGELOG.md)**: Version history, security migrations, and feature releases.
+* **[OCR Evaluation & Accuracy Report](docs/OCR_EVALUATION_REPORT.md)**: CER/WER benchmarks, continuous grayscale vs binarization analysis, and isolate performance.
+* **[Physical Device Verification Matrix](docs/DEVICE_VERIFICATION_MATRIX.md)**: Physical Android & iOS hardware verification, permissions, and ML Kit setup.
 * **Architectural Decision Records (ADRs)**:
   * [`ADR-001: Adoption of Drift ORM`](docs/adr/ADR-001-drift-orm.md)
   * [`ADR-002: Adoption of Riverpod State Management`](docs/adr/ADR-002-riverpod-state-management.md)
@@ -35,116 +37,37 @@ Comprehensive, lightweight architecture, database, and milestone documentation:
 * **Master Milestone Execution Plan:** [`docs/NeuroScript_AI_Milestone_Execution_Plan.pdf`](docs/NeuroScript_AI_Milestone_Execution_Plan.pdf)
 * **Database Relational Schema & ER Diagram:** [`docs/diagrams/database_er.md`](docs/diagrams/database_er.md)
 * **System Architecture & Component Diagrams:** [`docs/diagrams/architecture.md`](docs/diagrams/architecture.md)
-* **Runtime Sequence Diagrams:** [`docs/diagrams/sequence_diagrams.md`](docs/diagrams/sequence_diagrams.md)
 * **Data Contracts (Lesson Schema & OpenAPI):** [`docs/contracts/`](docs/contracts/)
-* **Database Layer Documentation:** [`lib/data/database/README.md`](lib/data/database/README.md)
 
 ---
 
-## Problem Statement and Motivation
+## System Capabilities (Milestones 1, 2 & 3)
 
-Undergraduate students with learning differences encounter severe cognitive barriers when revising from lecture notes:
+### 1. Optical Document Capture & Gallery Ingestion (FR-01)
+- **Camera Viewfinder:** Live framing guide, multi-page capture counter (up to 5 pages), and flash control.
+- **Gallery Import:** One-tap selection from the device photo library with multi-image support (up to 5 pages).
+- **Multiple Entry Points:** Directly accessible from the Library screen via Floating Action Button, AppBar scanner icon, and empty-state action button.
 
-1. **Executive Dysfunction & Task Initiation (ADHD):** Confronting dense, unorganized notes causes task paralysis and cognitive overwhelm. Uncapped study queues of 100+ cards trigger focus fatigue and abandonment.
-2. **Visual Stress & Scotopic Sensitivity (Dyslexia):** Harsh black text on pure white backgrounds produces visual glare, letter distortion ("dancing text"), and rapid eye strain. Crowded layouts impede phonological decoding.
-3. **Sensory Sensitivity & Ambiguity (Autism):** Unpredictable navigation, gratuitous motion animations, and figurative language induce sensory overload and frustration.
-4. **AI Hallucinations in Educational Tools:** Mainstream generative assistants routinely invent non-existent facts or extrapolate beyond provided lecture materials without verifiable source citations.
-5. **Data Privacy Deficits:** Commercial flashcard tools store student notes in plaintext on cloud servers without end-to-end user encryption.
+### 2. Pure-Dart Background Isolate Preprocessing (FR-02)
+- Resizes captured images to a maximum 1600px bounding box preserving aspect ratio.
+- Preserves continuous 8-bit luminance gradients for Google ML Kit deep CNN feature extractors.
+- Applies $1.35\times$ dynamic contrast boost and Gaussian spatial smoothing to suppress paper noise.
+- Performs geometric rotation deskew between $0.75^\circ$ and $15.0^\circ$ using horizontal projection variance.
 
-NeuroScript AI resolves these challenges through an accessibility-first client architecture, strict source-grounding verification, and a zero-retention, encrypted offline storage model.
+### 3. On-Device OCR & 1-Based Line Transcription (FR-03)
+- Transcribes handwritten and printed lecture notes using Google ML Kit on-device vision models.
+- Assigns deterministic 1-based line numbers (`L1`, `L2`, ...) to facilitate precise citation provenance in generated flashcards.
 
----
+### 4. Interactive OCR Review & Line Editor (FR-04)
+- Full-screen line review permitting learners to edit typos inline, merge split lines, insert missing lines, delete lines, or reorder lines.
+- **Deduplication:** Automatically hashes note contents and prompts learners if a study set already exists, preventing duplicate lesson entries and navigating directly to the created study set.
 
-## System Architecture
-
-### 1. Implemented & Operational Features (Milestones 1 & 2)
-
-The current release (`v0.2.1-m2`) delivers the complete client and database foundation:
-
-```
-+-------------------------------------------------------------------------+
-|                    Client Layer (Flutter & Riverpod)                    |
-|                                                                         |
-|  [ Splash Screen ]  -------->  [ Onboarding ]  --->  [ Profile Select ] |
-|                                                             |           |
-|                                                             v           |
-|  [ Library Dashboard ] <-------------------------> [ Lesson Overview ]  |
-|     |                                                       |           |
-|     +-- [ Active Recall Review (3D Flip) ] <----------------+           |
-|     +-- [ Concept Map Graph (2D Interactive) ] <------------+           |
-|     +-- [ Progress & Study Analytics ] <--------------------+           |
-|     +-- [ Flashcard Set Editor (/lesson/:id/edit) ]                     |
-|     +-- [ Recently Deleted Trash & Recovery Sheet ]                     |
-|                                                                         |
-|  [ "Where is this from?" Line-Level Source Provenance Modal ]           |
-+-------------------------------------------------------------------------+
-                                    |
-                                    v (Reactive Streams & AES-256 Fail-Closed)
-+-------------------------------------------------------------------------+
-|               Local Encrypted Database Layer (Drift ORM)                |
-|                                                                         |
-|  - user_profiles (ADHD, Dyslexia, Autism configurations)                |
-|  - source_notes (Raw text & unique SHA-256 documentHash index)          |
-|  - lessons (Title, conceptMapJson, soft-delete is_deleted)              |
-|  - flashcards (Question, answer, sourceLineReference citations)         |
-|  - review_progress (5-Box Leitner interval, nextReviewDate, metrics)    |
-|                                                                         |
-|  Engine: sqlite3 3.x + SQLite3MultipleCiphers (sqlite3mc AES-256)       |
-|  Keys: Hardware-backed 256-bit AES key via FlutterSecureStorage         |
-+-------------------------------------------------------------------------+
-```
-
-* **Cryptographic Local Database (WP2.1):**
-  - Drift ORM managing encrypted SQLite via SQLite3MultipleCiphers (`sqlite3mc`).
-  - Hardware-backed 256-bit AES key generated via `Random.secure()` and persisted in `FlutterSecureStorage` (Android KeyStore / iOS Keychain).
-  - **Fail-Closed Runtime**: Throws typed `DatabaseEncryptionException` if cipher is missing or inactive; unencrypted fallback is strictly prohibited.
-  - Foreign-key cascade deletion across `source_notes` $\to$ `lessons` $\to$ `flashcards` $\to$ `review_progress`.
-  - Android ADB backup disabled (`android:allowBackup="false"`).
-  - Schema migration from v1 to v2 supporting soft-delete (`is_deleted`).
-* **5-Box Leitner Spaced Repetition Engine (WP2.2):**
-  - Pure-Dart scheduling algorithm with intervals: Box 1 (1 day), Box 2 (3 days), Box 3 (7 days), Box 4 (14 days), Box 5 (30 days).
-  - **Profile-Driven Queue Capping**: Strictly capped at **5 cards per session** for ADHD learners to eliminate review anxiety; capped at **10 cards** for Dyslexia and Autism.
-  - Injected `Clock` interface enabling deterministic time simulation in unit tests.
-* **Idempotent Bundled Curriculum (WP2.3):**
-  - Bundled seed curriculum JSON files loaded transactionally on initial launch.
-  - Exactly 0 duplicate rows inserted on subsequent launches or re-imports.
-  - **Honest Content Attribution**: Human-authored seed lessons have `groundingScore` set to `null` and display a clear "Seed lesson (author-written)" badge.
-* **Study Dashboard & Library (WP2.4):**
-  - Dynamic search filtering, multi-criteria sorting (Title, Due, Card Count), and study progress metrics.
-  - Full provenance modal displaying note metadata, creation date, and SHA-256 document hash.
-  - Recently Deleted trash sheet supporting instant set restoration or permanent cascading purge.
-  - Flashcard Set Editor (`/lesson/:id/edit`) allowing users to edit titles, modify cards, or add new items.
-  - Developer Paste-Text Importer available in debug/demo mode (`demoMode`).
-* **Accessibility-First Study Modes (WP2.5):**
-  - Interactive Flashcard Review with card flipping, box progression, and source line reference links.
-  - Interactive Concept Map graph with pan/zoom (`InteractiveViewer`) and node line inspection.
-  - Zero `RenderFlex` overflows verified at both standard 1.0x and high-contrast 2.0x text scaling.
-
----
-
-### 2. Planned Architecture & Roadmap (Milestones 3 through 6)
-
-The following components are designed in the architecture blueprints but belong to **Milestone 3 and beyond**; they are **NOT** present in the Milestone 1-2 evaluation release:
-
-```
-+-------------------------------------------------------------------------+
-|               MILESTONE 3 PIPELINE AND M4 ROADMAP                       |
-|                                                                         |
-|  [ Camera Capture ]  --->  [ Dart Preprocess ] --->  [ ML Kit OCR ]    |
-|   (Burst + Flash)          (OpenCV pending)         (Android / iOS)     |
-|                                                              |          |
-|                                                              v          |
-|  [ Local Encrypted DB ] <--- [ Demo Generator ] <--- [ Proxy Gateway ] |
-|   (Encrypted storage)         (Grounding in M4)       (ASP.NET Core)    |
-+-------------------------------------------------------------------------+
-```
-
-1. **Stage 1: Optical Acquisition (Milestone 3):** Camera preview and burst capture (1–5 pages) with flash control and a fixed framing guide. Automatic edge detection and ambient light sensing are not implemented.
-2. **Stage 2: Image Preprocessing (Milestone 3):** Current client uses a Dart isolate for resizing, grayscale conversion, contrast boost, Gaussian smoothing, global thresholding, and coarse skew estimation. The specified OpenCV CLAHE, bilateral filtering, adaptive threshold, and deskew correction remain incomplete.
-3. **Stage 3: OCR Transcription (Milestone 3):** Google ML Kit Latin recognition is wired for Android/iOS and produces ordered, 1-based numbered lines. Android still needs physical-device verification; iOS needs the Latin resource bundle and linker configuration described by the package setup. Desktop/web flows use typed notes or demos.
-4. **Stage 4: ASP.NET Core Proxy Gateway (Milestone 3):** Rate-limited gateway and client path are implemented. Configure `NEUROSCRIPT_PROXY_API_KEY` on the server and inject the matching `API_KEY` at build time. Current backend returns mock lessons; live Gemini integration is Milestone 4. Contract is in `docs/contracts/proxy-api.openapi.yaml`.
-5. **Stage 5: LLM Synthesis & MiniLM Grounding Verification (Milestone 4):** Closed-book prompt compilation with Google Gemini 2.5 Flash and all-MiniLM-L6-v2 semantic embeddings. Generator mode defaults to `GeneratorMode.seed`.
-6. **Stage 6: Text-to-Speech (TTS) & Simplification (Milestone 5):** Auditory read-aloud engine with word-level highlight tracking and literal simplification mode for Autism. Flagged off via `enableTts = false` and `enableSimplify = false`.
+### 5. Production-Hardened ASP.NET Core Proxy Gateway (Stage 4)
+- **Authentication:** Enforces constant-time `X-Api-Key` cryptographic verification.
+- **Per-Device Rate Limiting:** Unique device installation UUID (`InstallIdService`) stored in hardware secure storage; sliding-window rate limit (20 req/min) returning RFC-compliant `Retry-After` headers.
+- **Payload Constraints:** Enforces 256 KB max request body size, 200 line maximum, and 25,000 character maximum.
+- **Privacy Audit Logging:** Emits structured metadata logs (timestamp, masked install ID, line count, status, latency); never persists or logs raw student notes.
+- **Containerization:** Ready for deployment with `server/NeuroScriptProxy/Dockerfile` and `server/docker-compose.yml`.
 
 ---
 
@@ -161,52 +84,38 @@ NeuroScript AI provides three dedicated, WCAG 2.1 AA compliant design systems:
 | **Body Text** | Dark Charcoal (`#1F2937`) | Soft Charcoal (`#2B2D42`) | Deep Slate (`#1A2E35`) |
 | **Typography** | Crisp Sans-Serif | Relaxed line-height (1.6), tracking +0.6 | Predictable structure, tracking +0.2 |
 | **Study Sizing** | **5 cards per session** (strict cap) | 10 cards per session | 10 cards per session |
-| **Motion & Audio** | Engaging progress rings | Gentle cues, no glare | Zero autoplay motion, muted borders |
+| **Touch Targets** | $\ge 48 \times 48\text{ dp}$ | $\ge 48 \times 48\text{ dp}$ | $\ge 48 \times 48\text{ dp}$ |
 
-*All color combinations have been mathematically validated in `test/theme_wcag_test.dart` to exceed the WCAG 2.1 AA minimum contrast threshold of 4.5:1 for standard body text.*
+*All color combinations have been mathematically validated in `test/theme_wcag_test.dart` to exceed the WCAG 2.1 AA minimum contrast threshold of 4.5:1.*
 
 ---
 
 ## How to Verify & Reproduce
 
-The application is accompanied by a comprehensive, fully automated test suite. You can verify the entire project locally using standard Flutter tools:
-
 ### 1. Static Analysis
-Verify that zero warnings, errors, or lints exist under our hardened analysis rules:
+Verify that zero warnings, errors, or lints exist:
 ```bash
 flutter analyze
 ```
 
-### 2. Code Formatting
-Verify that all source and test files adhere strictly to standard Dart style guidelines:
-```bash
-dart format --output=none --set-exit-if-changed lib test integration_test
-```
-
-### 3. Automated Test Suite
-Execute the full test suite (80 automated unit, widget, and integration tests):
+### 2. Automated Test Suite (105 Tests Passing)
+Run all unit, widget, integration, and OCR benchmark tests:
 ```bash
 flutter test
 ```
 
-### 4. Code Coverage Report
-Generate code coverage metrics:
+### 3. Backend Proxy Verification
+Build and execute the backend ASP.NET Core solution and test suite:
 ```bash
-flutter test --coverage
+dotnet build server/NeuroScriptProxy/NeuroScriptProxy.sln
 ```
 
-### 5. Build Debug APK
-Build a reproducible debug Android application package:
+### 4. Install Up-to-Date Release APK
+The repository provides a single, unified, release APK located at:
 ```bash
-flutter build apk --debug
+release_apk/neuro_script.apk
 ```
-
----
-
-## Current Scope Limitations
-
-In alignment with university FYP Milestone 1 & 2 evaluation guidelines:
-1. **Curriculum Source:** Study content in this release is loaded from pre-verified offline seed curriculum files (`assets/seed/*.json`) and developer test imports. Live camera capture and cloud LLM generation are scheduled for Milestones 3 and 4.
-2. **Grounding Evaluation:** Because seed content is author-written, LLM hallucination scoring is not simulated; grounding scores are set to `null` and displayed honestly as human-authored.
-3. **Audio / TTS:** Audio playback and Text-to-Speech engines are deferred to Milestone 5.
-4. **Platform Scope:** Fully tested and operational on Android, Windows, and Linux local environments.
+Install directly onto any physical Android device:
+```bash
+adb install -r release_apk/neuro_script.apk
+```

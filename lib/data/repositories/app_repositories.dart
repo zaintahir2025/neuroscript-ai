@@ -250,7 +250,7 @@ class AppLessonRepository implements LessonRepository {
   }
 
   @override
-  Future<void> saveLesson({
+  Future<String> saveLesson({
     required String noteId,
     required LessonModel lesson,
   }) async {
@@ -298,6 +298,47 @@ class AppLessonRepository implements LessonRepository {
             );
       }
     });
+    return lessonId;
+  }
+
+  @override
+  Future<List<LessonSummary>> getLessonsByNoteId(String noteId) async {
+    final matched = await (db.select(
+      db.lessons,
+    )..where((l) => l.noteId.equals(noteId) & l.isDeleted.equals(false))).get();
+    if (matched.isEmpty) return [];
+
+    final allCards = await db.select(db.flashcards).get();
+    final allProgress = await db.select(db.reviewProgress).get();
+    final progressMap = {for (final p in allProgress) p.cardId: p};
+    final now = DateTime.now();
+
+    final summaries = <LessonSummary>[];
+    for (final lesson in matched) {
+      final cards = allCards
+          .where((c) => c.lessonId == lesson.lessonId)
+          .toList();
+      var dueCount = 0;
+      for (final c in cards) {
+        final progress = progressMap[c.cardId];
+        if (progress == null || !progress.nextReviewDate.isAfter(now)) {
+          dueCount++;
+        }
+      }
+      summaries.add(
+        LessonSummary(
+          lessonId: lesson.lessonId,
+          title: lesson.title,
+          profile: lesson.source,
+          source: lesson.source,
+          cardCount: cards.length,
+          dueCount: dueCount,
+          createdAt: lesson.createdAt,
+          noteId: lesson.noteId,
+        ),
+      );
+    }
+    return summaries;
   }
 
   @override

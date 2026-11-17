@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/document_hash.dart';
 import '../../core/widgets/app_button.dart';
+import '../../data/models/lesson_model.dart';
 import '../../data/models/ocr_models.dart';
 import '../../services/image_preprocessor.dart';
 import '../../services/ocr_service.dart';
@@ -265,8 +266,59 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
           .getActiveProfile();
       final profileName = activeProfile?.displayName ?? 'Dyslexia';
 
-      // 1. Check or Save source note
+      // 1. Check if source note and study set already exist
       final existingNoteId = await noteRepo.getNoteIdByHash(noteHash);
+      if (existingNoteId != null) {
+        final existingLessons = await lessonRepo.getLessonsByNoteId(
+          existingNoteId,
+        );
+        if (existingLessons.isNotEmpty && mounted) {
+          final choice = await showDialog<String>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.history_edu, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text('Existing Study Set Found'),
+                ],
+              ),
+              content: Text(
+                'A study set already exists for this exact note:\n\n'
+                '• "${existingLessons.first.title}" (${existingLessons.first.cardCount} cards)\n\n'
+                'Would you like to open the existing set or generate a new version?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop('cancel'),
+                  child: const Text('Cancel'),
+                ),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop('open'),
+                  child: const Text('Open Existing Set'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop('new'),
+                  child: const Text('Generate New Version'),
+                ),
+              ],
+            ),
+          );
+
+          if (choice == 'open') {
+            if (mounted) {
+              final router = GoRouter.maybeOf(context);
+              if (router != null) {
+                context.go('/lesson/${existingLessons.first.lessonId}');
+              }
+            }
+            return;
+          } else if (choice != 'new') {
+            return;
+          }
+        }
+      }
+
       final noteId =
           existingNoteId ??
           await noteRepo.saveNote(
@@ -274,16 +326,63 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
             documentHash: noteHash,
           );
 
-      // 2. Synthesize Lesson (via Proxy Service or local compiler)
-      final proxyService = ProxyService(config: config);
-      final lesson = await proxyService.generateLesson(
-        noteHash: noteHash,
-        ocrLines: _lines,
-        profileName: profileName,
-      );
+      // 2. Synthesize Lesson (via Proxy Service with unique installId or transparent local fallback)
+      final installId = await ref.read(installIdProvider.future);
+      final proxyService = ProxyService(config: config, installId: installId);
+
+      LessonModel? lesson;
+      try {
+        lesson = await proxyService.generateLesson(
+          noteHash: noteHash,
+          ocrLines: _lines,
+          profileName: profileName,
+        );
+      } on ProxyException catch (e) {
+        if (!mounted) return;
+        final useOffline = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.cloud_off, color: Colors.amber),
+                SizedBox(width: 8),
+                Text('Cloud Gateway Offline'),
+              ],
+            ),
+            content: Text(
+              'Could not reach the cloud lesson compiler:\n${e.message}\n\n'
+              'Would you like to generate basic flashcards offline using on-device rules instead?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton.icon(
+                icon: const Icon(Icons.offline_bolt, size: 18),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                label: const Text('Generate Offline Cards'),
+              ),
+            ],
+          ),
+        );
+
+        if (useOffline == true) {
+          lesson = proxyService.generateLocalFallback(
+            noteHash: noteHash,
+            ocrLines: _lines,
+            profileName: profileName,
+          );
+        } else {
+          return;
+        }
+      }
 
       // 3. Persist lesson and flashcards in encrypted Drift database
-      await lessonRepo.saveLesson(noteId: noteId, lesson: lesson);
+      final createdLessonId = await lessonRepo.saveLesson(
+        noteId: noteId,
+        lesson: lesson,
+      );
 
       // Invalidate providers
       ref.invalidate(allLessonsProvider);
@@ -300,18 +399,9 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
         ),
       );
 
-      // Fetch the newly created lesson summary to get its ID
-      final allLessons = await lessonRepo.getAllLessons();
-      final newlyCreated = allLessons.isNotEmpty ? allLessons.last : null;
-
-      if (!mounted) return;
       final router = GoRouter.maybeOf(context);
       if (router != null) {
-        if (newlyCreated != null) {
-          context.go('/lesson/${newlyCreated.lessonId}');
-        } else {
-          context.go('/library');
-        }
+        context.go('/lesson/$createdLessonId');
       } else if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }

@@ -26,7 +26,9 @@ import '../core/models/profile_type.dart';
 import '../data/database/database.dart';
 import '../data/repositories/app_repositories.dart';
 import '../data/repositories/repository_interfaces.dart';
+import '../services/install_id_service.dart';
 import '../services/leitner_scheduler.dart';
+import '../services/proxy_service.dart';
 import '../services/seed_importer.dart';
 
 /// Provider exposing compile-time configuration and runtime feature flags.
@@ -69,6 +71,19 @@ final lessonRepositoryProvider = Provider<LessonRepository>((ref) {
 final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
   final db = ref.watch(appDatabaseProvider);
   return AppReviewRepository(db);
+});
+
+/// FutureProvider resolving the persistent, device-unique install UUID.
+final installIdProvider = FutureProvider<String>((ref) async {
+  return InstallIdService.getOrCreateInstallId();
+});
+
+/// Provider supplying the configured ProxyService with the device-unique install ID.
+final proxyServiceProvider = Provider<ProxyService>((ref) {
+  final config = ref.watch(appConfigProvider);
+  final installIdAsync = ref.watch(installIdProvider);
+  final installId = installIdAsync.value ?? 'inst_init';
+  return ProxyService(config: config, installId: installId);
 });
 
 /// FutureProvider reading the currently active learner profile from persistent storage.

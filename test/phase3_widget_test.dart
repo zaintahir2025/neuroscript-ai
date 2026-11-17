@@ -110,21 +110,12 @@ void main() {
         addTearDown(() => tester.binding.setSurfaceSize(null));
 
         final fakePicker = _FakeImagePicker([
-          XFile.fromData(
-            Uint8List.fromList([1, 2, 3]),
-            name: 'page1.jpg',
-          ),
-          XFile.fromData(
-            Uint8List.fromList([4, 5, 6]),
-            name: 'page2.jpg',
-          ),
+          XFile.fromData(Uint8List.fromList([1, 2, 3]), name: 'page1.jpg'),
+          XFile.fromData(Uint8List.fromList([4, 5, 6]), name: 'page2.jpg'),
         ]);
 
         await tester.pumpWidget(
-          createTestApp(
-            CaptureScreen(imagePicker: fakePicker),
-            db,
-          ),
+          createTestApp(CaptureScreen(imagePicker: fakePicker), db),
         );
         await tester.pumpAndSettle();
 
@@ -153,10 +144,7 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          createTestApp(
-            CaptureScreen(initialPages: preloaded),
-            db,
-          ),
+          createTestApp(CaptureScreen(initialPages: preloaded), db),
         );
         await tester.pumpAndSettle();
 

@@ -6,6 +6,12 @@ using NeuroScriptProxy.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Enforce request body size limits at the Kestrel web server level (256 KB max)
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 256 * 1024; // 256 KB
+});
+
 // Register dependencies
 builder.Services.AddCors(options =>
 {
@@ -78,7 +84,7 @@ app.MapPost("/api/v1/lessons/generate", async (
         ? "anonymous-client"
         : installId.Trim();
 
-    // Check rate limit
+    // Check sliding-window rate limit
     var (isAllowed, remaining, retryAfter) = rateLimiter.CheckLimit(effectiveInstallId);
     httpContext.Response.Headers["X-RateLimit-Limit"] = rateLimiter.Limit.ToString();
     httpContext.Response.Headers["X-RateLimit-Remaining"] = remaining.ToString();
@@ -86,7 +92,10 @@ app.MapPost("/api/v1/lessons/generate", async (
     if (!isAllowed)
     {
         httpContext.Response.Headers["Retry-After"] = retryAfter.ToString();
-        logger.LogWarning("Rate limit exceeded for InstallId: {InstallId}", effectiveInstallId);
+        var maskedId = effectiveInstallId.Length > 8
+            ? $"{effectiveInstallId[..4]}...{effectiveInstallId[^4..]}"
+            : "****";
+        logger.LogWarning("[AUDIT] Rate limit exceeded for InstallId: {InstallId}", maskedId);
 
         return Results.Json(new ProblemDetailsDto(
             Type: "https://neuroscript.uet.edu.pk/errors/rate-limited",
@@ -97,7 +106,7 @@ app.MapPost("/api/v1/lessons/generate", async (
         ), statusCode: 429, contentType: "application/problem+json");
     }
 
-    // Validate input body
+    // Validate input body presence and basic structure
     if (request == null || string.IsNullOrWhiteSpace(request.NoteHash) || request.Lines == null || request.Lines.Count == 0)
     {
         return Results.Json(new ProblemDetailsDto(
@@ -109,31 +118,65 @@ app.MapPost("/api/v1/lessons/generate", async (
         ), statusCode: 400, contentType: "application/problem+json");
     }
 
+    // Enforce line count constraint (max 200 lines per submission)
+    if (request.Lines.Count > 200)
+    {
+        return Results.Json(new ProblemDetailsDto(
+            Type: "https://neuroscript.uet.edu.pk/errors/payload-too-large",
+            Title: "Too Many Lines",
+            Status: 413,
+            Detail: $"Submitted note contains {request.Lines.Count} lines, which exceeds the maximum limit of 200 lines per lesson request.",
+            ErrorCode: "LINE_LIMIT_EXCEEDED"
+        ), statusCode: 413, contentType: "application/problem+json");
+    }
+
+    // Enforce character count constraint (max 25,000 characters per submission)
+    var totalChars = request.Lines.Sum(l => l?.Length ?? 0);
+    if (totalChars > 25000)
+    {
+        return Results.Json(new ProblemDetailsDto(
+            Type: "https://neuroscript.uet.edu.pk/errors/payload-too-large",
+            Title: "Content Exceeds Character Limit",
+            Status: 413,
+            Detail: $"Submitted note contains {totalChars} characters, which exceeds the maximum limit of 25,000 characters per lesson request.",
+            ErrorCode: "CHAR_LIMIT_EXCEEDED"
+        ), statusCode: 413, contentType: "application/problem+json");
+    }
+
     try
     {
         var lesson = await generator.GenerateLessonAsync(request);
         sw.Stop();
 
-        // Privacy-first audit logging: metadata only, never raw notes or card contents
-        // Never log lesson titles or note hashes; titles can contain source-note text.
-        logger.LogInformation("Generated lesson for Profile: {Profile}, Lines: {LineCount}, Latency: {ElapsedMs}ms",
-            request.Profile, request.Lines.Count, sw.ElapsedMilliseconds);
+        // Privacy-first audit logging: metadata only, never raw notes, titles, or card contents.
+        // Identifiers are masked to prevent personal re-identification.
+        var maskedInstallId = effectiveInstallId.Length > 8
+            ? $"{effectiveInstallId[..4]}...{effectiveInstallId[^4..]}"
+            : "****";
+
+        logger.LogInformation(
+            "[AUDIT] Method=POST Endpoint=/api/v1/lessons/generate ClientId={ClientId} Profile={Profile} Lines={LineCount} Chars={CharCount} Status=200 Latency={ElapsedMs}ms",
+            maskedInstallId, request.Profile, request.Lines.Count, totalChars, sw.ElapsedMilliseconds);
 
         return Results.Ok(lesson);
     }
     catch (Exception ex)
     {
         sw.Stop();
-        logger.LogError(ex, "Error generating study lesson for Profile: {Profile}", request.Profile);
+        logger.LogError(ex, "Internal error generating study lesson for Profile: {Profile}", request.Profile);
 
+        // Sanitize error detail: never leak raw stack traces or internal exception messages
         return Results.Json(new ProblemDetailsDto(
             Type: "https://neuroscript.uet.edu.pk/errors/upstream-error",
             Title: "Generation Failed",
             Status: 502,
-            Detail: ex.Message,
+            Detail: "An internal error occurred while generating the study lesson. Please try again later.",
             ErrorCode: "UPSTREAM_ERROR"
         ), statusCode: 502, contentType: "application/problem+json");
     }
 });
 
 app.Run();
+
+// Expose Program class for WebApplicationFactory in integration tests
+public partial class Program { }

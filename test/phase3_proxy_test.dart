@@ -220,6 +220,7 @@ void main() {
         noteHash: 'offline_hash',
         ocrLines: ocrLines,
         profileName: 'Autism',
+        allowOfflineFallback: true,
       );
 
       expect(lesson.title, isNotEmpty);
@@ -228,7 +229,7 @@ void main() {
       expect(lesson.flashcards[1].sourceLines, equals([2]));
       expect(lesson.conceptMap.nodes.length, equals(2));
       expect(lesson.conceptMap.edges.length, equals(1));
-      expect(lesson.meta.source, equals('mock'));
+      expect(lesson.meta.source, equals('offline-basic'));
     });
   });
 }

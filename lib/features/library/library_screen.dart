@@ -89,6 +89,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             error: (_, _) => const SizedBox.shrink(),
           ),
           IconButton(
+            icon: const Icon(Icons.document_scanner),
+            tooltip: 'Scan Notes (OCR)',
+            onPressed: () => _showOcrSourceSheet(context),
+          ),
+          IconButton(
             icon: Badge(
               isLabelVisible: (deletedAsync.asData?.value.length ?? 0) > 0,
               label: Text('${deletedAsync.asData?.value.length ?? 0}'),
@@ -108,6 +113,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               switch (value) {
                 case 'maps':
                   _showConceptMapPicker(context, ref);
+                case 'scan_ocr':
+                  _showOcrSourceSheet(context);
                 case 'progress':
                   context.push('/progress');
                 case 'settings':
@@ -117,6 +124,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'scan_ocr',
+                child: ListTile(
+                  leading: Icon(Icons.document_scanner_outlined),
+                  title: Text('Scan Notes (OCR)'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
               const PopupMenuItem(
                 value: 'maps',
                 child: ListTile(
@@ -385,6 +400,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                   'Add a set of notes to create your first study set.',
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall,
+                                ),
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  icon: const Icon(Icons.document_scanner),
+                                  label: const Text('Scan Notes (OCR)'),
+                                  onPressed: () => _showOcrSourceSheet(context),
                                 ),
                               ],
                             ),
@@ -1022,7 +1043,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     'Take Photos (Camera)',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: const Text('Capture notes directly with your camera'),
+                  subtitle: const Text(
+                    'Capture notes directly with your camera',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1051,7 +1074,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     'Choose from Gallery',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: const Text('Pick note photos from your device gallery'),
+                  subtitle: const Text(
+                    'Pick note photos from your device gallery',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

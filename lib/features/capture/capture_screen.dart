@@ -23,11 +23,7 @@ import '../../data/models/ocr_models.dart';
 import '../providers.dart';
 
 class CaptureScreen extends ConsumerStatefulWidget {
-  const CaptureScreen({
-    super.key,
-    this.initialPages,
-    this.imagePicker,
-  });
+  const CaptureScreen({super.key, this.initialPages, this.imagePicker});
 
   /// Preloaded pages (e.g. imported from gallery on launch).
   final List<Uint8List>? initialPages;
@@ -219,9 +215,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       if (mounted) {
         setState(() => _isProcessingCapture = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not load gallery images: $e'),
-          ),
+          SnackBar(content: Text('Could not load gallery images: $e')),
         );
       }
     }
@@ -406,7 +400,9 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           IconButton(
             icon: const Icon(Icons.photo_library),
             tooltip: 'Choose from Gallery',
-            onPressed: _capturedPages.length < 5 ? _pickImagesFromGallery : null,
+            onPressed: _capturedPages.length < 5
+                ? _pickImagesFromGallery
+                : null,
           ),
           IconButton(
             icon: const Icon(Icons.edit_note),
@@ -502,7 +498,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                                       color: Colors.white38,
                                     ),
                                   ),
-                                  icon: const Icon(Icons.photo_library, size: 16),
+                                  icon: const Icon(
+                                    Icons.photo_library,
+                                    size: 16,
+                                  ),
                                   label: const Text('Choose from Gallery'),
                                   onPressed: _pickImagesFromGallery,
                                 ),
@@ -748,7 +747,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                             height: 68,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3.5),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3.5,
+                              ),
                               color: _capturedPages.length < 5
                                   ? colorScheme.primary
                                   : Colors.grey,

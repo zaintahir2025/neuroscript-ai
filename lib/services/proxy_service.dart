@@ -78,15 +78,22 @@ class ProxyService {
   }
 
   /// Sends 1-based ordered OCR lines to the proxy to generate a verified study lesson.
+  /// If [allowOfflineFallback] is false, network outages throw a typed [ProxyException]
+  /// so that the user interface can inform the student transparently rather than silently masking failure.
   Future<LessonModel> generateLesson({
     required String noteHash,
     required List<OcrLine> ocrLines,
     required String profileName,
     String mode = 'standard',
+    bool allowOfflineFallback = false,
   }) async {
     // If configured for offline/seed generator mode, synthesize on-device directly
     if (config.generatorMode == GeneratorMode.seed) {
-      return _generateLocalFallback(noteHash, ocrLines, profileName);
+      return generateLocalFallback(
+        noteHash: noteHash,
+        ocrLines: ocrLines,
+        profileName: profileName,
+      );
     }
 
     final lines = ocrLines.map((l) => l.text).toList();
@@ -147,30 +154,60 @@ class ProxyService {
         );
       }
     } on http.ClientException catch (e) {
-      debugPrint(
-        'Proxy HTTP client exception: $e. Using local synthesis fallback.',
+      debugPrint('Proxy HTTP client exception: $e');
+      if (allowOfflineFallback) {
+        return generateLocalFallback(
+          noteHash: noteHash,
+          ocrLines: ocrLines,
+          profileName: profileName,
+        );
+      }
+      throw ProxyException(
+        'Cannot reach cloud lesson generator: Network connection error ($e).',
+        statusCode: 503,
+        errorCode: 'NETWORK_ERROR',
       );
-      return _generateLocalFallback(noteHash, ocrLines, profileName);
     } on TimeoutException {
-      debugPrint('Proxy timed out. Using local synthesis fallback.');
-      return _generateLocalFallback(noteHash, ocrLines, profileName);
+      debugPrint('Proxy timed out.');
+      if (allowOfflineFallback) {
+        return generateLocalFallback(
+          noteHash: noteHash,
+          ocrLines: ocrLines,
+          profileName: profileName,
+        );
+      }
+      throw const ProxyException(
+        'Cloud lesson generator connection timed out (30s).',
+        statusCode: 504,
+        errorCode: 'TIMEOUT',
+      );
     } catch (e) {
       if (e is RateLimitException || e is ProxyException) {
         rethrow;
       }
-      debugPrint(
-        'Proxy connection failed: $e. Using local synthesis fallback.',
+      debugPrint('Proxy connection failed: $e');
+      if (allowOfflineFallback) {
+        return generateLocalFallback(
+          noteHash: noteHash,
+          ocrLines: ocrLines,
+          profileName: profileName,
+        );
+      }
+      throw ProxyException(
+        'Cannot connect to proxy gateway: $e',
+        statusCode: 503,
+        errorCode: 'UNREACHABLE',
       );
-      return _generateLocalFallback(noteHash, ocrLines, profileName);
     }
   }
 
-  /// On-device mock compilation fallback when proxy server is unreachable or offline.
-  LessonModel _generateLocalFallback(
-    String noteHash,
-    List<OcrLine> ocrLines,
-    String profileName,
-  ) {
+  /// Explicit on-device rule-based lesson synthesis when proxy server is unreachable or offline.
+  /// Clearly flagged as 'offline-basic' to ensure transparency.
+  LessonModel generateLocalFallback({
+    required String noteHash,
+    required List<OcrLine> ocrLines,
+    required String profileName,
+  }) {
     final flashcards = <FlashcardModel>[];
     final nodes = <ConceptNodeModel>[];
     final edges = <ConceptEdgeModel>[];
@@ -234,7 +271,7 @@ class ProxyService {
       title: title,
       meta: LessonMeta(
         profile: profileName,
-        source: 'mock',
+        source: 'offline-basic',
         promptVersion: 'v1',
       ),
       conceptMap: ConceptMapModel(nodes: nodes, edges: edges),

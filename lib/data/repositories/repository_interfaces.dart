@@ -72,10 +72,14 @@ abstract class LessonRepository {
   Future<LessonModel?> getLessonById(String lessonId);
 
   /// Saves a newly synthesized lesson into storage linked to its parent noteId.
-  Future<void> saveLesson({
+  /// Returns the newly generated, unique [lessonId].
+  Future<String> saveLesson({
     required String noteId,
     required LessonModel lesson,
   });
+
+  /// Finds existing lessons associated with the given source noteId.
+  Future<List<LessonSummary>> getLessonsByNoteId(String noteId);
 
   /// Deletes a lesson by moving it to recently deleted trash (soft delete).
   Future<void> deleteLesson(String lessonId);

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroScriptProxy", "NeuroScriptProxy.csproj", "{F5AA619B-F452-40DE-BF7F-723BFC74487F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroScriptProxy.Tests", "..\NeuroScriptProxy.Tests\NeuroScriptProxy.Tests.csproj", "{21D554C8-F21A-4AF3-8B59-523FD851B574}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{F5AA619B-F452-40DE-BF7F-723BFC74487F}.Release|x64.Build.0 = Release|Any CPU
 		{F5AA619B-F452-40DE-BF7F-723BFC74487F}.Release|x86.ActiveCfg = Release|Any CPU
 		{F5AA619B-F452-40DE-BF7F-723BFC74487F}.Release|x86.Build.0 = Release|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Debug|x64.Build.0 = Debug|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Debug|x86.Build.0 = Debug|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Release|x64.ActiveCfg = Release|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Release|x64.Build.0 = Release|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Release|x86.ActiveCfg = Release|Any CPU
+		{21D554C8-F21A-4AF3-8B59-523FD851B574}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
