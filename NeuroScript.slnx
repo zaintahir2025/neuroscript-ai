@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/server/">
+    <Project Path="server/NeuroScriptProxy.Tests/NeuroScriptProxy.Tests.csproj" />
+    <Project Path="server/NeuroScriptProxy/NeuroScriptProxy.csproj" />
+  </Folder>
+</Solution>
