@@ -1,6 +1,7 @@
 # NeuroScript AI: Privacy-Preserving Study Platform for Neurodivergent Learners
 
 [![CI](https://github.com/zaintahir2025/neuroscript-ai/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zaintahir2025/neuroscript-ai/actions/workflows/ci.yml)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Web%20App-GitHub%20Pages-blueviolet.svg)](https://zaintahir2025.github.io/neuroscript-ai/)
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-blue.svg)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Release](https://img.shields.io/badge/Release-v0.3.0--m3-brightgreen.svg)](docs/EVALUATION.md)
@@ -19,6 +20,7 @@ A specialized, accessible study application engineered for students with Attenti
   * **Zain Tahir** (Roll No. 23-CS-115) – Systems Architecture, Database Engineering, Frontend & Backend Implementation
   * **Ujala Sahar** (Roll No. 23-CS-135) – UI/UX Design System, Accessibility Auditing, User Acceptance Testing, Documentation
 * **Delivery Scope:** Milestones 1, 2, and 3 are 100% complete, verified with 105 automated tests and production-hardened release builds.
+* **Live Web Demonstration:** [https://zaintahir2025.github.io/neuroscript-ai/](https://zaintahir2025.github.io/neuroscript-ai/)
 
 ---
 
