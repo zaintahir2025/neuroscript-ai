@@ -71,17 +71,16 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
 
     try {
       final isNativeMobile =
-          !kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS);
+          defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS;
 
-      if (!isNativeMobile && !kIsWeb) {
+      if (!isNativeMobile) {
         if (!mounted) return;
         setState(() {
           _isLoading = false;
           _statusMessage = '';
           _processingError =
-              'On Desktop platforms, camera text recognition is not available. '
+              'On Desktop testing environments, camera text recognition is not available. '
               'You can paste notes or questions directly, load demo exam notes, or add lines manually.';
         });
         return;
@@ -107,9 +106,8 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
 
       // 2. Transcribe lines
       setState(
-        () => _statusMessage = kIsWeb
-            ? 'Stage 2: Transcribing note lines in browser (WASM)...'
-            : 'Stage 2: Transcribing handwritten lines (ML Kit)...',
+        () => _statusMessage =
+            'Stage 2: Transcribing handwritten lines (ML Kit)...',
       );
       const ocrService = OcrService();
       final ocrResult = await ocrService.processPages(
@@ -125,9 +123,7 @@ class _OcrReviewScreenState extends ConsumerState<OcrReviewScreen> {
 
       if (_lines.isEmpty) {
         setState(() {
-          _processingError = kIsWeb
-              ? 'No text detected in the uploaded image. Please ensure high clarity and contrast, or paste/add lines manually.'
-              : 'No text detected in the captured photo. Please ensure good lighting and contrast, or paste/add lines manually.';
+          _processingError = 'No text detected in the captured photo. Please ensure good lighting and contrast, or paste/add lines manually.';
         });
       }
     } on Object catch (e) {

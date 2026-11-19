@@ -1,4 +1,4 @@
 {
-  "dotnet.defaultSolution": "NeuroScript.sln",
-  "dotnet.server.projectLoading.loadProjectsOnDemand": false
+  "dotnet.defaultSolution": "server/NeuroScriptProxy/NeuroScriptProxy.sln",
+  "dart.flutterSdkPath": null
 }

@@ -53,9 +53,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       _capturedPages.addAll(widget.initialPages!);
     }
     // Default to Gallery mode on Web or desktop where camera hardware is unsupported
-    if (kIsWeb ||
-        (defaultTargetPlatform != TargetPlatform.android &&
-            defaultTargetPlatform != TargetPlatform.iOS)) {
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) {
       _selectedMode = CaptureSourceMode.gallery;
     }
     _initializeCamera();

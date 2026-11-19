@@ -32,6 +32,10 @@ migrate_working_dir/
 *.pfx
 *.keystore
 *.jks
+key.properties
+**/key.properties
+local.properties
+**/local.properties
 appsettings*.local.json
 secrets.json
 
@@ -55,9 +59,9 @@ secrets.json
 # --------------------------------------------------
 .dart_tool/
 .packages
-pubspec.lock
 build/
 /build/
+coverage/
 /coverage/
 .flutter-plugins
 .flutter-plugins-dependencies

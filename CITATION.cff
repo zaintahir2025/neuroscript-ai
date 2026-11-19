@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software in your research or evaluation, please cite it as below."
+title: "NeuroScript AI: Privacy-Preserving Study Platform for Neurodivergent Learners"
+authors:
+  - family-names: "Tahir"
+    given-names: "Zain"
+    affiliation: "University of Engineering and Technology, Taxila"
+  - family-names: "Sahar"
+    given-names: "Ujala"
+    affiliation: "University of Engineering and Technology, Taxila"
+version: 0.3.0
+date-released: 2026-11-19
+repository-code: "https://github.com/zaintahir2025/neuroscript-ai"
+license: MIT
+abstract: "An offline-first, privacy-preserving study application for students with ADHD, Dyslexia, and Autism. Features optical note scanning, on-device OCR, line-grounded flashcards, Leitner spaced repetition, and WCAG 2.1 AA accessibility profiles."

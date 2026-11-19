@@ -19,7 +19,7 @@ This directory documents the formal Final Year Project (FYP) proposal and master
 ## 2. Master Milestone Execution Plan
 
 The authoritative execution plan is frozen in the repository at:
-* **[`NeuroScript_AI_Milestone_Execution_Plan.pdf`](../../NeuroScript_AI_Milestone_Execution_Plan.pdf)**
+* **[`NeuroScript_AI_Milestone_Execution_Plan.pdf`](../NeuroScript_AI_Milestone_Execution_Plan.pdf)**
 
 ### Key Milestone Milestones Summary
 

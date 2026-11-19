@@ -7,9 +7,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:path_provider/path_provider.dart';
 
 import '../data/models/ocr_models.dart';
-import 'ocr_web_stub.dart'
-    if (dart.library.js_interop) 'ocr_web_bridge.dart'
-    as web_ocr;
 
 abstract interface class OcrPageRecognizer {
   Future<List<RecognizedOcrLine>> recognize(Uint8List imageBytes);
@@ -54,29 +51,6 @@ class MlKitPageRecognizer implements OcrPageRecognizer {
   Future<void> close() => _recognizer.close();
 }
 
-/// Client-side in-browser WASM text recognizer for Flutter Web.
-class WebWasmPageRecognizer implements OcrPageRecognizer {
-  @override
-  Future<List<RecognizedOcrLine>> recognize(Uint8List imageBytes) async {
-    try {
-      final rawLines = await web_ocr.runWebOcr(imageBytes);
-      return [
-        for (final item in rawLines)
-          RecognizedOcrLine(
-            item['text'] as String? ?? '',
-            confidence: (item['confidence'] as num?)?.toDouble() ?? 0.9,
-          ),
-      ];
-    } on Object catch (e) {
-      debugPrint('Web WASM OCR error: $e');
-      return const [];
-    }
-  }
-
-  @override
-  Future<void> close() async {}
-}
-
 class OcrService {
   const OcrService({this.recognizer});
 
@@ -104,19 +78,16 @@ class OcrService {
     }
 
     final isNativeMobile =
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
 
     OcrPageRecognizer? engine = recognizer;
 
     if (engine == null) {
       if (isNativeMobile) {
         engine = MlKitPageRecognizer();
-      } else if (kIsWeb) {
-        engine = WebWasmPageRecognizer();
       } else {
-        // Desktop platforms (Windows, Linux, macOS)
+        // Fallback for non-mobile hosts without physical camera or ML Kit native libs
         return OcrResult(
           lines: const [],
           fullText: '',

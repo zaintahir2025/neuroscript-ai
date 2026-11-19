@@ -18,8 +18,8 @@ Key architectural implementation details:
 1. **Hardware-Backed Key Generation**:
    - Generates a 256-bit AES encryption key using `Random.secure()`.
    - Stores and retrieves the master key via `FlutterSecureStorage` (hardware KeyStore on Android, Keychain on iOS/macOS).
-2. **Fail-Closed Cipher Verification**:
-   - Upon opening an encrypted connection, the database executes `PRAGMA key = '<256-bit-key>';` and queries `SELECT sqlite3mc_version();`.
+2. **Fail-Closed Cipher Verification & SQLCipher Mode**:
+   - Upon opening an encrypted connection, the database executes `PRAGMA cipher = 'sqlcipher';` to configure SQLCipher-compatible mode in `sqlite3mc`, followed by `PRAGMA key = '<256-bit-key>';`, and queries `SELECT sqlite3mc_version();`.
    - If `sqlite3mc` is missing, inactive, or fails to initialize, the factory **fails closed** by throwing a strongly typed `DatabaseEncryptionException`. Unencrypted fallback is strictly prohibited in production and release builds.
 3. **Android Backup Hardening**:
    - Enforced `android:allowBackup="false"` in `AndroidManifest.xml` to prevent ADB backup extraction of local databases and keys.

@@ -9,7 +9,6 @@
 //   and atomic zero-retention database wipe.
 // ============================================================================
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,16 +54,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               SizedBox(height: 12),
               Text(
-                kIsWeb
-                    ? 'Web Storage (Demo Only)'
-                    : 'AES-256 SQLCipher at Rest',
+                'AES-256 SQLCipher Encryption at Rest',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 6),
               Text(
-                kIsWeb
-                    ? 'On web platforms, data is stored locally in IndexedDB using WebAssembly. Note: Web storage is not encrypted (demo only). Use native Android, iOS, or Desktop builds for hardware-secured AES-256 encryption at rest.'
-                    : 'Every database page is encrypted using AES-256 in CBC mode with PBKDF2 key derivation. The 256-bit cryptographic key is stored inside hardware keystores (Android Keystore / iOS Keychain) and is never hardcoded or printed to logs.',
+                'Every database page is encrypted using AES-256 SQLCipher-compatible mode via SQLite3MultipleCiphers. The 256-bit cryptographic key is stored inside hardware-backed secure storage (Android Keystore / iOS Keychain). Verified by automated test suite (test/encryption_verification_test.dart): on-disk header byte inspection confirms the file does not start with "SQLite format 3", wrong-key access fails closed, and key regeneration is isolated.',
                 style: TextStyle(fontSize: 13),
               ),
               SizedBox(height: 12),
@@ -352,16 +347,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: kIsWeb
-                                ? Colors.amber.withValues(alpha: 0.12)
-                                : Colors.green.withValues(alpha: 0.12),
+                            color: Colors.green.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            kIsWeb ? Icons.cloud_queue : Icons.lock_outline,
-                            color: kIsWeb
-                                ? Colors.amber.shade800
-                                : Colors.green,
+                          child: const Icon(
+                            Icons.lock_outline,
+                            color: Colors.green,
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -370,16 +361,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                kIsWeb
-                                    ? 'Not encrypted (demo only)'
-                                    : 'Encrypted Local Database',
+                                'Encrypted Local Database',
                                 style: TextStyle(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                kIsWeb
-                                    ? 'Web storage uses IndexedDB WASM. Not encrypted (demo only).'
-                                    : 'AES-256 bit hardware-keyed encryption at rest. Zero unencrypted cloud data transmission.',
+                                'AES-256 bit hardware-keyed encryption at rest. Zero unencrypted cloud data transmission.',
                                 style: theme.textTheme.bodySmall,
                               ),
                             ],
