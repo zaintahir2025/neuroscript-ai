@@ -37,6 +37,12 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // ML Kit text recognition uses dependency injection inside its init
+            // ContentProvider. R8 removes required obfuscated bindings and crashes
+            // before Flutter starts, so keep Android libraries intact. Flutter's
+            // release build still AOT-compiles Dart; ABI splits trim native payloads.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
