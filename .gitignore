@@ -32,6 +32,10 @@ migrate_working_dir/
 *.pfx
 *.keystore
 *.jks
+key.properties
+**/key.properties
+local.properties
+**/local.properties
 appsettings*.local.json
 secrets.json
 
@@ -57,6 +61,7 @@ secrets.json
 .packages
 build/
 /build/
+coverage/
 /coverage/
 .flutter-plugins
 .flutter-plugins-dependencies
