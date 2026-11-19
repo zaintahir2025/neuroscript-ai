@@ -46,10 +46,10 @@ jobs:
       - name: Execute Automated Test Suite (Unit & Widget)
         run: flutter test --coverage
 
-      - name: Set up .NET Core SDK (8.0.x)
+      - name: Set up .NET Core SDK (10.0.x)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Execute Backend Tests (xUnit & ASP.NET Core Proxy)
         run: dotnet test server/NeuroScriptProxy/NeuroScriptProxy.sln --configuration Release --verbosity normal

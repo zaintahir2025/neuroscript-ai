@@ -12,24 +12,60 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     serverOptions.Limits.MaxRequestBodySize = 256 * 1024; // 256 KB
 });
 
-// Register dependencies
+// Configure CORS with explicitly configured origins (never AllowAnyOrigin)
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+    ?? new[] { "https://neuroscript.uet.edu.pk", "http://localhost:3000" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p =>
+    options.AddPolicy("ConfiguredOrigins", p =>
     {
-        p.AllowAnyOrigin()
+        p.WithOrigins(allowedOrigins)
          .AllowAnyMethod()
          .AllowAnyHeader()
          .WithExposedHeaders("X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After");
     });
 });
 
+// Fail startup in production if required API keys are missing
+var geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+var proxyApiKey = builder.Configuration["NEUROSCRIPT_PROXY_API_KEY"] ?? Environment.GetEnvironmentVariable("NEUROSCRIPT_PROXY_API_KEY");
+
+if (builder.Environment.IsProduction())
+{
+    if (string.IsNullOrWhiteSpace(geminiApiKey))
+    {
+        throw new InvalidOperationException("Fatal startup failure: GEMINI_API_KEY environment variable is missing in production.");
+    }
+    if (string.IsNullOrWhiteSpace(proxyApiKey))
+    {
+        throw new InvalidOperationException("Fatal startup failure: NEUROSCRIPT_PROXY_API_KEY configuration or environment variable is missing in production.");
+    }
+}
+
+// Register dependencies
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<RateLimiter>();
-builder.Services.AddSingleton<ILessonGenerator, MockLessonGenerator>();
+
+if (!string.IsNullOrWhiteSpace(geminiApiKey))
+{
+    builder.Services.AddSingleton<ILessonGenerator, GeminiLessonGenerator>();
+}
+else
+{
+    builder.Services.AddSingleton<ILessonGenerator, MockLessonGenerator>();
+}
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+// Add HTTPS redirection + HSTS in production
+if (app.Environment.IsProduction())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("ConfiguredOrigins");
 
 // 1. Health check endpoint (GET /health)
 app.MapGet("/health", (ILessonGenerator generator) =>
@@ -55,7 +91,7 @@ app.MapPost("/api/v1/lessons/generate", async (
     var sw = System.Diagnostics.Stopwatch.StartNew();
 
     // A client key must be provisioned on the server; never accept any non-empty value.
-    var configuredApiKey = configuration["NEUROSCRIPT_PROXY_API_KEY"];
+    var configuredApiKey = configuration["NEUROSCRIPT_PROXY_API_KEY"] ?? Environment.GetEnvironmentVariable("NEUROSCRIPT_PROXY_API_KEY");
     if (string.IsNullOrWhiteSpace(configuredApiKey))
     {
         return Results.Json(new ProblemDetailsDto(
