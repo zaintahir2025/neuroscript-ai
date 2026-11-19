@@ -2,7 +2,7 @@
 
 **Project:** NeuroScript AI  
 **Milestone:** 3  
-**Platforms:** Android (API 26+) & iOS (iOS 15.5+)  
+**Platforms:** Android (API 24+) & iOS (iOS 14+)  
 **Verification Posture:** Honest evaluation status. No dated physical device hardware run logs currently exist in `docs/evidence/`. Capabilities are configured in platform manifests/properties and verified via automated unit and widget test suites. Physical device field testing is scheduled for Milestone 6.
 
 ---
@@ -24,12 +24,14 @@
 ## 2. Platform Configuration Details
 
 ### 2.1 iOS Configuration
+
 - Deployment target pinned to `platform :ios, '15.5'` in `ios/Podfile` to support Google ML Kit vision text recognition frameworks.
 - Privacy disclosures configured in `ios/Runner/Info.plist`:
   - `NSCameraUsageDescription`: *"NeuroScript uses the camera to scan your study notes on your device."*
   - `NSPhotoLibraryUsageDescription`: *"NeuroScript needs photo library access to allow selecting handwritten study notes from your gallery."*
 
 ### 2.2 Android Configuration
+
 - Permissions declared in `android/app/src/main/AndroidManifest.xml`:
   - `android.permission.INTERNET`: Required for ASP.NET Core cloud proxy communication.
   - `android.permission.CAMERA`: Required for camera viewfinder and photo capture.

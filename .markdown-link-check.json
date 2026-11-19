@@ -1,0 +1,12 @@
+{
+  "ignorePatterns": [
+    { "pattern": "^https?://localhost" },
+    { "pattern": "^https?://127.0.0.1" },
+    { "pattern": "^https://img.shields.io" },
+    { "pattern": "^https://github.com/zaintahir2025/neuroscript-ai" },
+    { "pattern": "^https://zaintahir2025.github.io" },
+    { "pattern": "^https://ai.google.dev" }
+  ],
+  "timeout": "10s",
+  "retryOn429": true
+}

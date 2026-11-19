@@ -1,9 +1,11 @@
 # NeuroScript AI - Learner Personas
+
 > **Milestone 1 Deliverable (WP1.1)** • Course: CS-400 Final Year Project, UET Taxila
 
 ---
 
-### Persona 1: Bilal – The ADHD Learner
+## Persona 1: Bilal – The ADHD Learner
+
 * **Age:** 21 • Undergraduate Computer Science Student
 * **Background:** Often takes voluminous handwritten lecture notes during fast-paced lectures but struggles to sit down and review them later due to executive dysfunction and focus fatigue.
 * **Pain Points:**
@@ -17,7 +19,8 @@
 
 ---
 
-### Persona 2: Sara – The Dyslexic Learner
+## Persona 2: Sara – The Dyslexic Learner
+
 * **Age:** 20 • Undergraduate Software Engineering Student
 * **Background:** Struggles with reading fatigue, letter inversion, and visual glare when reading high-contrast black text on pure white digital displays.
 * **Pain Points:**
@@ -32,7 +35,8 @@
 
 ---
 
-### Persona 3: Hamza – The Autistic Learner
+## Persona 3: Hamza – The Autistic Learner
+
 * **Age:** 22 • Undergraduate Data Science Student
 * **Background:** Highly structured, detail-oriented learner who experiences sensory overload from hyper-saturated colors or abrupt interface animations.
 * **Pain Points:**
