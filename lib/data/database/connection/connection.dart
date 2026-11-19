@@ -1,12 +1,4 @@
-// ============================================================================
-// NeuroScript AI: Cross-Platform Connection Dispatcher
-// File: lib/data/database/connection/connection.dart
-//
-// Description:
-//   Conditionally routes database connection construction to either
-//   native SQLite with SQLCipher (dart.library.ffi) or WebAssembly SQLite (dart.library.js_interop).
-// ============================================================================
+/// Native SQLite database connection dispatcher for Android and iOS.
+library;
 
-export 'connection_stub.dart'
-    if (dart.library.ffi) 'connection_native.dart'
-    if (dart.library.js_interop) 'connection_web.dart';
+export 'connection_native.dart';

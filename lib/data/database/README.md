@@ -25,24 +25,23 @@ NeuroScript AI is engineered from the ground up as a **privacy-first, offline-fi
 |             Schema versioning, relational joins, atomic transactions      |
 +--------------------------------------------------------------------------+
                                     │
-                 ┌──────────────────┴──────────────────┐
-                 ▼ (Native FFI)                        ▼ (Web JS Interop)
-+----------------------------------+  +------------------------------------+
-|   SQLCipher AES-256 Engine       |  |   sqlite3 WebAssembly Dispatcher   |
-|   (Android, iOS, Windows, macOS) |  |   (Browser OPFS / IndexedDB)       |
-+----------------------------------+  +------------------------------------+
-                 │                                     │
-                 ▼                                     ▼
-+----------------------------------+  +------------------------------------+
-|  neuroscript_encrypted.db File   |  |   neuroscript_web_db Database      |
-+----------------------------------+  +------------------------------------+
+                                    ▼ (Native FFI)
++--------------------------------------------------------------------------+
+|      sqlite3 with SQLite3MultipleCiphers (SQLCipher-compatible mode)     |
+|      PRAGMA cipher = 'sqlcipher'; PRAGMA key = '<key>';                  |
+|      (Android & iOS Mobile / Tablet Hardware-Backed Keystore)             |
++--------------------------------------------------------------------------+
+                                    │
+                                    ▼
++--------------------------------------------------------------------------+
+|                     neuroscript_encrypted.db File                        |
++--------------------------------------------------------------------------+
 ```
 
 ### Core Technologies
 1. **SQLite:** The industry standard, highly reliable, ACID-compliant embedded relational database engine.
-2. **Drift (formerly Moor):** A reactive persistence library for Dart and Flutter. Drift translates compile-time table definitions into type-safe queries, eliminating runtime syntax errors and providing compile-time verification for all data operations.
-3. **SQLCipher (AES-256):** Transparent 256-bit AES encryption extension for SQLite. SQLCipher encrypts every page of the database file on disk, including data, schema, indexes, and journal files.
-4. **WebAssembly (WASM):** Enables the identical relational database schema and query operations to run in web browsers using `sqlite3.wasm` and a dedicated Web Worker (`drift_worker.js`).
+2. **Drift:** A reactive persistence library for Dart and Flutter. Drift translates compile-time table definitions into type-safe queries, eliminating runtime syntax errors and providing compile-time verification for all data operations.
+3. **SQLite3MultipleCiphers (SQLCipher-compatible mode):** Transparent 256-bit AES encryption extension for SQLite. Operates in strict SQLCipher-compatible mode (`PRAGMA cipher = 'sqlcipher'`) encrypting every page of the database file on disk, including data, schema, indexes, and journal files.
 
 ---
 
@@ -166,13 +165,12 @@ Native database files (`neuroscript_encrypted.db`) are encrypted at rest using *
 
 ---
 
-## 5. Multiplatform Connection Dispatching
+## 5. Mobile Native Database Connection
 
-Cross-platform compilation requires isolating native C-FFI libraries from web JavaScript runtimes. This is achieved via Dart conditional exports in `lib/data/database/connection/`:
+The application targets mobile platforms (Android and iOS). Database connection initialization is encapsulated in `lib/data/database/connection/`:
 
-* **`connection.dart`:** Dispatches to `connection_native.dart` if `dart.library.ffi` is present, or to `connection_web.dart` if `dart.library.js_interop` is present.
-* **`connection_native.dart`:** Instantiates `NativeDatabase.createInBackground` targeting `neuroscript_encrypted.db` in the application documents directory, executing the `PRAGMA key` SQLCipher initialization.
-* **`connection_web.dart`:** Instantiates `WasmDatabase.open` with `sqlite3.wasm` and `drift_worker.js`, providing asynchronous persistence via the browser Origin Private File System (OPFS) or IndexedDB.
+* **`connection.dart`:** Canonical connection export.
+* **`connection_native.dart`:** Instantiates `NativeDatabase.createInBackground` targeting `neuroscript_encrypted.db` in the application documents directory, executing `PRAGMA cipher = 'sqlcipher'` followed by `PRAGMA key = '$keyBase64'`. Ensures fail-closed validation (`SELECT sqlite3mc_version();`) and enables foreign keys (`PRAGMA foreign_keys = ON;`).
 
 ---
 

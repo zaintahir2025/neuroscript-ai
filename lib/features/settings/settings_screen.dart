@@ -9,7 +9,6 @@
 //   and atomic zero-retention database wipe.
 // ============================================================================
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -348,16 +347,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: kIsWeb
-                                ? Colors.amber.withValues(alpha: 0.12)
-                                : Colors.green.withValues(alpha: 0.12),
+                            color: Colors.green.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            kIsWeb ? Icons.cloud_queue : Icons.lock_outline,
-                            color: kIsWeb
-                                ? Colors.amber.shade800
-                                : Colors.green,
+                          child: const Icon(
+                            Icons.lock_outline,
+                            color: Colors.green,
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -366,16 +361,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                kIsWeb
-                                    ? 'Not encrypted (demo only)'
-                                    : 'Encrypted Local Database',
+                                'Encrypted Local Database',
                                 style: TextStyle(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                kIsWeb
-                                    ? 'Web storage uses IndexedDB WASM. Not encrypted (demo only).'
-                                    : 'AES-256 bit hardware-keyed encryption at rest. Zero unencrypted cloud data transmission.',
+                                'AES-256 bit hardware-keyed encryption at rest. Zero unencrypted cloud data transmission.',
                                 style: theme.textTheme.bodySmall,
                               ),
                             ],
