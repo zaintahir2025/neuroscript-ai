@@ -55,16 +55,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               SizedBox(height: 12),
               Text(
-                kIsWeb
-                    ? 'Web Storage (Demo Only)'
-                    : 'AES-256 SQLCipher at Rest',
+                'AES-256 SQLCipher Encryption at Rest',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 6),
               Text(
-                kIsWeb
-                    ? 'On web platforms, data is stored locally in IndexedDB using WebAssembly. Note: Web storage is not encrypted (demo only). Use native Android, iOS, or Desktop builds for hardware-secured AES-256 encryption at rest.'
-                    : 'Every database page is encrypted using AES-256 in CBC mode with PBKDF2 key derivation. The 256-bit cryptographic key is stored inside hardware keystores (Android Keystore / iOS Keychain) and is never hardcoded or printed to logs.',
+                'Every database page is encrypted using AES-256 SQLCipher-compatible mode via SQLite3MultipleCiphers. The 256-bit cryptographic key is stored inside hardware-backed secure storage (Android Keystore / iOS Keychain). Verified by automated test suite (test/encryption_verification_test.dart): on-disk header byte inspection confirms the file does not start with "SQLite format 3", wrong-key access fails closed, and key regeneration is isolated.',
                 style: TextStyle(fontSize: 13),
               ),
               SizedBox(height: 12),

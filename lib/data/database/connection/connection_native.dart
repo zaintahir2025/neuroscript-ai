@@ -67,9 +67,10 @@ QueryExecutor openConnection({String? overrideKey, File? overrideFile}) {
     return NativeDatabase.createInBackground(
       file,
       setup: (rawDb) {
-        // Enforce SQLCipher / SQLite3MultipleCiphers encryption
+        // Enforce SQLCipher-compatible mode before setting key via SQLite3MultipleCiphers
         // Fail closed if cipher is not active (no swallowed exception)
         try {
+          rawDb.execute("PRAGMA cipher = 'sqlcipher';");
           rawDb.execute("PRAGMA key = '$key';");
           final res = rawDb.select('SELECT sqlite3mc_version();');
           if (res.isEmpty ||
