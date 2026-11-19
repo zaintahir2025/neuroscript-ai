@@ -3,6 +3,7 @@
 **Project:** NeuroScript AI  
 **Milestone:** 3  
 **Platforms:** Android (API 26+) & iOS (iOS 15.5+)  
+**Verification Posture:** Honest evaluation status. No dated physical device hardware run logs currently exist in `docs/evidence/`. Capabilities are configured in platform manifests/properties and verified via automated unit and widget test suites. Physical device field testing is scheduled for Milestone 6.
 
 ---
 
@@ -10,23 +11,25 @@
 
 | Capability / Subsystem | Physical Android (Phone / Tablet) | iOS Setup & Verification | Verification Status | Notes |
 |---|---|---|---|---|
-| **Camera Capture** | Verified (`android.permission.CAMERA`) | Configured (`NSCameraUsageDescription`, `ios/Podfile` target 15.5) | **PASS** | Viewfinder preview, multi-page capture counter, flash toggle |
-| **Photo Gallery Ingestion** | Verified (`READ_MEDIA_IMAGES` / Photo Picker) | Configured (`NSPhotoLibraryUsageDescription`) | **PASS** | Multi-image selection up to 5 pages |
-| **On-Device OCR (ML Kit)** | Verified via background isolate | Configured via Podfile GoogleMLKit pod bindings | **PASS** | 1-based numbered lines, tilt deskew |
-| **Encrypted Database** | Verified (SQLCipher AES-256) | Verified (SQLCipher AES-256) | **PASS** | Key generated and protected via Secure Storage |
-| **Per-Device Rate Limiting** | Verified (Unique UUID v4 per device) | Verified (Unique UUID v4 per device) | **PASS** | `InstallIdService` backed by hardware keystore |
-| **Network Gateway Security** | Verified (`android.permission.INTERNET`) | Verified (NSAppTransportSecurity) | **PASS** | Authenticated via `X-Api-Key`, sliding window 20 req/min |
-| **Accessibility & Scaling** | Verified at 1.0x, 1.5x, 2.0x text scale | Verified with Dynamic Type | **PASS** | 48dp+ tap targets, semantic labels |
+| **Camera Capture** | Configured (`android.permission.CAMERA`) | Configured (`NSCameraUsageDescription`, `ios/Podfile` target 15.5) | **NOT TESTED YET** | Configured in manifests. Camera mocked in automated tests. Physical hardware testing scheduled for M6. |
+| **Photo Gallery Ingestion** | Configured (`READ_MEDIA_IMAGES` / Photo Picker) | Configured (`NSPhotoLibraryUsageDescription`) | **NOT TESTED YET** | Photo picker configured. Multi-image selection tested via mock widgets in CI. Physical hardware testing scheduled for M6. |
+| **On-Device OCR (ML Kit)** | Configured via Google ML Kit Android dependencies | Configured via `Podfile` GoogleMLKit pod bindings | **NOT TESTED YET** | Google ML Kit Latin recognizer integrated. Physical device inference latency NOT MEASURED YET. |
+| **Encrypted Database** | Configured (sqlite3mc SQLCipher-compatible mode) | Configured (sqlite3mc SQLCipher-compatible mode) | **NOT TESTED YET** | AES-256 encryption verified in automated unit tests (`encryption_verification_test.dart`). Physical disk extraction on rooted hardware NOT TESTED YET. |
+| **Per-Device Rate Limiting** | Configured (UUID v4 in `FlutterSecureStorage`) | Configured (UUID v4 in Keychain) | **NOT TESTED YET** | `InstallIdService` logic verified in unit tests. Physical device hardware keystore persistence NOT TESTED YET. |
+| **Network Gateway Security** | Configured (`android.permission.INTERNET`) | Configured (`NSAppTransportSecurity`) | **NOT TESTED YET** | Proxy endpoint and TLS verified via backend test suite. Physical cellular/WiFi gateway round-trip NOT TESTED YET. |
+| **Accessibility & Scaling** | Configured (Material 3 high-contrast tokens) | Configured (Dynamic Type scaling) | **NOT TESTED YET** | 1.0x and 2.0x text scaling verified via golden unit tests. Physical device screen reader (TalkBack / VoiceOver) audit NOT TESTED YET. |
 
 ---
 
-## 2. iOS Configuration Details
+## 2. Platform Configuration Details
+
+### 2.1 iOS Configuration
 - Deployment target pinned to `platform :ios, '15.5'` in `ios/Podfile` to support Google ML Kit vision text recognition frameworks.
-- Added privacy disclosures to `ios/Runner/Info.plist`:
+- Privacy disclosures configured in `ios/Runner/Info.plist`:
   - `NSCameraUsageDescription`: *"NeuroScript uses the camera to scan your study notes on your device."*
   - `NSPhotoLibraryUsageDescription`: *"NeuroScript needs photo library access to allow selecting handwritten study notes from your gallery."*
 
-## 3. Android Configuration Details
+### 2.2 Android Configuration
 - Permissions declared in `android/app/src/main/AndroidManifest.xml`:
   - `android.permission.INTERNET`: Required for ASP.NET Core cloud proxy communication.
   - `android.permission.CAMERA`: Required for camera viewfinder and photo capture.

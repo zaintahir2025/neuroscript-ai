@@ -71,7 +71,7 @@ class ProxyService {
       throw ProxyException('Cannot connect to proxy gateway: $e');
     } on TimeoutException {
       throw const ProxyException('Proxy health check timed out.');
-    } catch (e) {
+    } on Object catch (e) {
       if (e is ProxyException) rethrow;
       throw ProxyException('Cannot connect to proxy gateway: $e');
     }
@@ -145,7 +145,11 @@ class ProxyService {
           final errJson = jsonDecode(response.body) as Map<String, dynamic>;
           errorDetail = errJson['detail'] as String? ?? errorDetail;
           errCode = errJson['errorCode'] as String?;
-        } on Exception catch (_) {}
+        } on FormatException catch (e) {
+          debugPrint('Could not parse error JSON payload: $e');
+        } on Exception catch (e) {
+          debugPrint('Failed to extract error detail: $e');
+        }
 
         throw ProxyException(
           errorDetail,
@@ -181,7 +185,7 @@ class ProxyService {
         statusCode: 504,
         errorCode: 'TIMEOUT',
       );
-    } catch (e) {
+    } on Object catch (e) {
       if (e is RateLimitException || e is ProxyException) {
         rethrow;
       }
